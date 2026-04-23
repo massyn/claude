@@ -4,10 +4,17 @@
 - NEVER perform a git commit or a git push.
 - When completing tasks from a dev plan checklist, check off tasks as you complete them.
 
+## Project Structure
+- Group code by functional concern, not by type. 
+- A file should have one clear reason to exist — if you can't describe its purpose in a sentence, it needs splitting.
+- Entry points (app.py, main.py, cli.py) are wiring only — no business logic.
+- Do not grow a single file to accommodate new concerns. Create a new file instead.
+- If you're unsure where something belongs, ask before placing it.
+
 ## Code Quality
 - Implement actual functionality — no mock, placeholder, or stub code.
 - Prefer simple, concise solutions. Avoid abstractions and over-engineering unless complexity genuinely warrants them.
-- Ensure files do not exceed 800 lines — split into smaller modules if needed.
+- If a file exceeds 400 lines, treat it as a signal to reconsider structure — not a hard limit to write up to.
 - Handle errors explicitly. Prefer returning errors or raising specific exceptions over silent failures or bare excepts.
 - Variables should have sensible defaults but be parameterised and available as configuration options where appropriate.
 
@@ -21,3 +28,7 @@
 ## Tools
 - Prioritise using available tools over manual approaches whenever appropriate.
 - Use `-q` (quiet) flags where available for package installation and similar commands. Only surface output if the command exits with an error.
+
+## Communication
+- Be concise in explanations. Do not narrate every step — summarise what you did and flag anything unexpected.
+- Do not re-read files you have already read in this session unless the content may have changed.
