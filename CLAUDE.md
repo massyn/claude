@@ -3,6 +3,8 @@
 - Use British English spelling for all communication, comments, and code.
 - NEVER perform a git commit or a git push.
 - When completing tasks from a dev plan checklist, check off tasks as you complete them.
+- When I ask you to develop something that is not documented, ask me if you should include it, and update CLAUDE.md with that additional information.
+- DO NOT GO OFF AND DO YOUR OWN THING. Take explicit instruction from the user on what to focus on next.
 
 ## Project Structure
 - Group code by functional concern, not by type. 
