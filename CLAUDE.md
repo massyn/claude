@@ -7,6 +7,7 @@
 ## Project Structure
 - Group code by functional concern, not by type.
 - A file should have one clear reason to exist — if you can't describe its purpose in a sentence, it needs splitting.
+- Don't extract helper functions unless they are reused or genuinely simplify a complex body of logic. An inner function or inline expression is preferable to a private module-level function used in only one place.
 - Entry points (app.py, main.py, cli.py) are wiring only — no business logic.
 - Do not grow a single file to accommodate new concerns. Create a new file instead.
 - Configuration must be externalised (env/config files), not hardcoded in business logic.
