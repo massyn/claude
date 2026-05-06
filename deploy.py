@@ -17,8 +17,10 @@ from pathlib import Path
 SOURCE = Path(__file__).parent / "settings.json"
 TARGET = Path.home() / ".claude" / "settings.json"
 
-CLAUDE_MD_SOURCE = Path(__file__).parent / "CLAUDE.md"
-CLAUDE_MD_TARGET = Path.home() / ".claude" / "CLAUDE.md"
+DOCS_TO_COPY: list[tuple[Path, Path]] = [
+    (Path(__file__).parent / "CLAUDE.md", Path.home() / ".claude" / "CLAUDE.md"),
+    (Path(__file__).parent / "design.md", Path.home() / ".claude" / "design.md"),
+]
 
 
 def load(path: Path) -> dict:
@@ -47,33 +49,34 @@ def sync_list(
     return to_add, proposals
 
 
-def sync_claude_md() -> None:
-    if not CLAUDE_MD_SOURCE.exists():
-        print(f"CLAUDE.md — source not found, skipping: {CLAUDE_MD_SOURCE}", file=sys.stderr)
+def sync_file(source: Path, target: Path) -> None:
+    name = source.name
+    if not source.exists():
+        print(f"{name} — source not found, skipping: {source}", file=sys.stderr)
         return
 
-    source_lines = CLAUDE_MD_SOURCE.read_text(encoding="utf-8").splitlines(keepends=True)
+    source_lines = source.read_text(encoding="utf-8").splitlines(keepends=True)
     target_lines = (
-        CLAUDE_MD_TARGET.read_text(encoding="utf-8").splitlines(keepends=True)
-        if CLAUDE_MD_TARGET.exists()
+        target.read_text(encoding="utf-8").splitlines(keepends=True)
+        if target.exists()
         else []
     )
 
     diff = list(difflib.unified_diff(
         target_lines,
         source_lines,
-        fromfile=str(CLAUDE_MD_TARGET),
-        tofile=str(CLAUDE_MD_SOURCE),
+        fromfile=str(target),
+        tofile=str(source),
     ))
 
     if not diff:
-        print("\nCLAUDE.md — no changes.")
+        print(f"\n{name} — no changes.")
         return
 
-    print("\nCLAUDE.md — diff:")
+    print(f"\n{name} — diff:")
     print("".join(diff), end="")
-    shutil.copy2(CLAUDE_MD_SOURCE, CLAUDE_MD_TARGET)
-    print(f"\nCLAUDE.md — copied to {CLAUDE_MD_TARGET}")
+    shutil.copy2(source, target)
+    print(f"\n{name} — copied to {target}")
 
 
 def main() -> int:
@@ -118,7 +121,8 @@ def main() -> int:
     else:
         print(f"\nTarget unchanged: {TARGET}")
 
-    sync_claude_md()
+    for src, tgt in DOCS_TO_COPY:
+        sync_file(src, tgt)
 
     return 0
 

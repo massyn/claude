@@ -98,7 +98,10 @@
       "WebFetch(domain:nytimes.com)",
       "WebFetch(domain:bloomberg.com)",
       "WebFetch(domain:politico.com)",
-      "WebFetch(domain:thehill.com)"
+      "WebFetch(domain:thehill.com)",
+      "WebFetch(domain:cdn.jsdelivr.net)",
+      "WebFetch(domain:getbootstrap.com)",
+      "WebFetch(domain:icons.getbootstrap.com)"
     ],
     "deny": [
       "Bash(git add*)",
