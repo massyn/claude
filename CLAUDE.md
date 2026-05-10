@@ -4,6 +4,9 @@
 - Use British English spelling for all communication, comments, and code.
 - NEVER perform a git commit or a git push.
 - When completing tasks from a dev plan checklist, check off tasks as you complete them.
+- Only modify files within the current project directory. If a root cause lies in an external project or dependency, report it and ask before acting.
+- Only add configuration options, parameters, or features that were explicitly requested. "It might be useful" is not authorisation.
+- When diagnosing a problem outside your scope, stop at the diagnosis. Present findings and wait for instruction.
 
 ## Decision Gates
 
