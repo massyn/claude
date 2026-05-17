@@ -5,7 +5,7 @@
 - NEVER perform a git commit or a git push.
 - When completing tasks from a dev plan checklist, check off tasks as you complete them.
 - Only modify files within the current project directory. If a root cause lies in an external project or dependency, report it and ask before acting.
-- Only add configuration options, parameters, or features that were explicitly requested. "It might be useful" is not authorisation.
+- Only make changes that were explicitly requested. This applies to code, configuration, files, and documentation alike. If you notice something outside the stated task that appears incorrect or improvable, report it as a finding and wait for instruction. Do not act on it.
 - When diagnosing a problem outside your scope, stop at the diagnosis. Present findings and wait for instruction.
 
 ## Decision Gates
