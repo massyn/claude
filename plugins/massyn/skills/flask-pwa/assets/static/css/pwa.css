@@ -1,0 +1,155 @@
+/* App-shell styles for a Flask PWA: bottom tab bar, safe areas, touch targets, bottom sheets,
+   sticky action bar and toast. Load after Bootstrap and theme.css; colours come from theme.css. */
+
+:root {
+  --pwa-tab-height: 4.25rem;
+  --pwa-tab-bg: var(--color-navbar, #212529);
+  --pwa-tab-fg: rgba(255, 255, 255, .65);
+  --pwa-tab-active: var(--color-primary, #0d6efd);
+  --pwa-line: rgba(255, 255, 255, .1);
+  --pwa-radius: 16px;
+}
+
+/* ---- Bottom tab bar (below lg) ----------------------------------------------- */
+.pwa-tab-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1030;
+  display: flex;
+  background-color: var(--pwa-tab-bg);
+  border-top: 1px solid var(--pwa-line);
+  /* Clear the iPhone home indicator; needs viewport-fit=cover. */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.pwa-tab {
+  flex: 1 1 0;
+  min-height: var(--pwa-tab-height);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .2rem;
+  color: var(--pwa-tab-fg);
+  font-size: .75rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.pwa-tab-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.pwa-tab.active, .pwa-tab:hover { color: var(--pwa-tab-active); font-weight: 700; }
+@media (max-width: 991.98px) {
+  /* Keep the end of the page clear of the fixed bar. */
+  body { padding-bottom: calc(var(--pwa-tab-height) + env(safe-area-inset-bottom)); }
+}
+
+/* Installed as an app on a phone, footer links belong on a tab instead. */
+@media (display-mode: standalone) and (max-width: 991.98px) {
+  .site-footer { display: none; }
+}
+
+/* ---- Touch targets ------------------------------------------------------------ */
+.btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+}
+.btn-lg { min-height: 56px; }
+.form-control, .form-select { min-height: 44px; font-size: 1rem; }  /* 1rem stops iOS zooming on focus */
+
+/* Square icon-only button; give it an aria-label. */
+.pwa-icon-btn { width: 44px; height: 44px; padding: 0; flex: none; }
+.pwa-icon-btn.btn-lg { width: 56px; height: 56px; }
+.pwa-icon {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+.pwa-icon-sm { width: 18px; height: 18px; }
+
+/* Chip choices: radio buttons (.btn-check) styled as tappable tiles in a grid. */
+.pwa-chips { display: grid; gap: .5rem; }
+.pwa-chip {
+  min-height: 48px;
+  border: 1px solid var(--pwa-line);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .25rem;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+.btn-check:checked + .pwa-chip { border: 2px solid var(--pwa-tab-active); font-weight: 700; }
+.btn-check:focus-visible + .pwa-chip { outline: 2px solid var(--pwa-tab-active); outline-offset: 2px; }
+
+/* ---- Bottom sheet: add .pwa-sheet to a Bootstrap .modal ----------------------- */
+@media (max-width: 575.98px) {
+  .modal.pwa-sheet .modal-dialog {
+    margin: 0;
+    max-width: none;
+    min-height: 100%;
+    display: flex;
+    align-items: flex-end;
+  }
+  .modal.pwa-sheet .modal-content {
+    border-radius: 22px 22px 0 0;
+    border: 0;
+    max-height: 92vh;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .modal.pwa-sheet.fade .modal-dialog { transform: translateY(40px); }
+  .modal.pwa-sheet.show .modal-dialog { transform: none; }
+}
+
+/* ---- Sticky action bar: the page's primary actions, above the tab bar on phones --- */
+.pwa-action-bar {
+  position: sticky;
+  bottom: calc(var(--pwa-tab-height) + env(safe-area-inset-bottom));
+  z-index: 1020;
+  display: flex;
+  gap: .625rem;
+  align-items: center;
+  margin: 1.5rem -12px 0;
+  padding: .75rem 12px;
+  background: var(--pwa-tab-bg);
+  border-top: 1px solid var(--pwa-line);
+}
+@media (min-width: 992px) {
+  .pwa-action-bar { bottom: 0; margin: 1.5rem 0 0; border: 1px solid var(--pwa-line); border-radius: var(--pwa-radius); }
+}
+
+/* ---- Toast for share and copy feedback (see static/js/share.js) -------------------- */
+.pwa-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--pwa-tab-height) + env(safe-area-inset-bottom) + 5.5rem);
+  transform: translateX(-50%);
+  z-index: 1090;
+  background: var(--color-fg, #212529);
+  color: var(--color-bg, #ffffff);
+  font-weight: 600;
+  padding: .6rem 1rem;
+  border-radius: 999px;
+  opacity: 0;
+  transition: opacity .2s;
+  pointer-events: none;
+}
+.pwa-toast.show { opacity: 1; }

@@ -1,0 +1,19 @@
+{# Bottom tab bar below Bootstrap's lg breakpoint; the top navbar's links take over from lg.
+   Three to five tabs, each an icon plus a one-word label. Sections come from nav_section() in app/pwa.py. #}
+{% from "partials/icons.html" import icon %}
+{% set section = nav_section() %}
+{% macro tab(endpoint, name, label, icon_name) -%}
+<a href="{{ url_for(endpoint) }}" class="pwa-tab{% if section == name %} active{% endif %}"{% if section == name %} aria-current="page"{% endif %}>
+  {{ icon(icon_name, 'pwa-tab-icon') }}
+  <span>{{ label }}</span>
+</a>
+{%- endmacro %}
+<nav class="pwa-tab-bar d-lg-none" aria-label="Main">
+  {{ tab('main.index', 'home', 'Home', 'home') }}
+  {{ tab('main.about', 'about', 'About', 'info') }}
+  {% if session.get('user') %}
+  {{ tab('auth.logout', 'me', 'Log out', 'logout') }}
+  {% else %}
+  {{ tab('auth.login', 'me', 'Sign in', 'login') }}
+  {% endif %}
+</nav>

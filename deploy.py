@@ -1,9 +1,15 @@
 """
-deploy.py — sync permissions from the repo settings.json into ~/.claude/settings.json.
+deploy.py — sync the repo settings.json into ~/.claude/settings.json and copy CLAUDE.md.
+
+Synced settings:
+  - permissions/allow and permissions/deny
+  - extraKnownMarketplaces and enabledPlugins (registers the massyn-tools plugin marketplace;
+    Claude Code fetches and installs the enabled plugins at the next session start)
 
 Rules:
   - Entries in source but missing from target → added to target.
   - Entries in target but missing from source → reported as proposals (not modified).
+  - Keys present in both with different values → reported as conflicts (not modified).
   - Nothing is ever removed from target.
 """
 
@@ -17,9 +23,10 @@ from pathlib import Path
 SOURCE = Path(__file__).parent / "settings.json"
 TARGET = Path.home() / ".claude" / "settings.json"
 
+PLUGIN_SECTIONS = ("extraKnownMarketplaces", "enabledPlugins")
+
 DOCS_TO_COPY: list[tuple[Path, Path]] = [
     (Path(__file__).parent / "CLAUDE.md", Path.home() / ".claude" / "CLAUDE.md"),
-    (Path(__file__).parent / "design.md", Path.home() / ".claude" / "design.md"),
 ]
 
 
@@ -47,6 +54,35 @@ def sync_list(
     proposals = sorted(target_set - source_set)
 
     return to_add, proposals
+
+
+def sync_mapping(section: str, source_map: dict, target_map: dict) -> bool:
+    """Add keys missing from target_map; report the rest. Returns True if target_map changed."""
+    to_add = sorted(set(source_map) - set(target_map))
+    proposals = sorted(set(target_map) - set(source_map))
+    conflicts = sorted(
+        k for k in set(source_map) & set(target_map) if source_map[k] != target_map[k]
+    )
+
+    if to_add:
+        print(f"\n{section} — adding {len(to_add)} new key(s):")
+        for key in to_add:
+            print(f"  + {key}")
+            target_map[key] = source_map[key]
+    else:
+        print(f"\n{section} — nothing to add.")
+
+    if conflicts:
+        print(f"\n{section} — {len(conflicts)} key(s) differ between source and target (target kept):")
+        for key in conflicts:
+            print(f"  ! {key}: source={json.dumps(source_map[key])} target={json.dumps(target_map[key])}")
+
+    if proposals:
+        print(f"\n{section} — {len(proposals)} key(s) in target but NOT in source (proposals to add to repo):")
+        for key in proposals:
+            print(f"  ? {key}")
+
+    return bool(to_add)
 
 
 def sync_file(source: Path, target: Path) -> None:
@@ -80,6 +116,9 @@ def sync_file(source: Path, target: Path) -> None:
 
 
 def main() -> int:
+    # Diffs of CLAUDE.md contain non-ASCII characters; Windows defaults to cp1252 when piped.
+    sys.stdout.reconfigure(encoding="utf-8")
+
     if not SOURCE.exists():
         print(f"ERROR: source not found: {SOURCE}", file=sys.stderr)
         return 1
@@ -114,6 +153,12 @@ def main() -> int:
             print(f"\npermissions/{section} — {len(proposals)} entr{'y' if len(proposals) == 1 else 'ies'} in target but NOT in source (proposals to add to repo):")
             for item in proposals:
                 print(f"  ? {item}")
+
+    for section in PLUGIN_SECTIONS:
+        if sync_mapping(section, source.get(section, {}), target.setdefault(section, {})):
+            changed = True
+        elif not target[section]:
+            del target[section]
 
     if changed:
         save(TARGET, target)

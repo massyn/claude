@@ -1,0 +1,14 @@
+{
+  "name": "massyn-tools",
+  "description": "Phil Massyn's Claude Code skills and commands",
+  "owner": {
+    "name": "Phil Massyn"
+  },
+  "plugins": [
+    {
+      "name": "massyn",
+      "source": "./plugins/massyn",
+      "description": "Git workflow, Python, Flask and Flask PWA development conventions, Semgrep SAST triage, and the /coffee session handoff"
+    }
+  ]
+}

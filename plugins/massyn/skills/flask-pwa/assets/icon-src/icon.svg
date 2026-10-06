@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Full-bleed app icon: solid square, artwork inside the 80% maskable safe zone (radius 204.8). -->
+  <rect width="512" height="512" fill="#212529"/>
+  <circle cx="256" cy="256" r="196" fill="none" stroke="#0d6efd" stroke-width="20"/>
+  <path d="M146 300 L256 150 L366 300 Z" fill="#0d6efd"/>
+  <path d="M206 300 L256 230 L306 300 Z" fill="#212529"/>
+  <rect x="146" y="320" width="220" height="22" rx="11" fill="#ffffff"/>
+</svg>

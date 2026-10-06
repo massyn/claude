@@ -2,7 +2,7 @@
 
 - If ambiguity is minor and reversible, proceed with a sensible assumption and state it.
 - Use British English spelling for all communication, comments, and code.
-- NEVER perform a git commit or a git push.
+- Git: follow the `massyn:devops` skill. NEVER run git in the main or master branch — the only thing allowed on main is `git pull --ff-only` to bring it up to date before branching; no add, commit, merge, push or anything else there, ever. Work only on a working branch. NEVER approve or merge a pull request — that is always the user's job.
 - When completing tasks from a dev plan checklist, check off tasks as you complete them.
 - Only modify files within the current project directory. If a root cause lies in an external project or dependency, report it and ask before acting.
 - Only make changes that were explicitly requested. This applies to code, configuration, files, and documentation alike. If you notice something outside the stated task that appears incorrect or improvable, report it as a finding and wait for instruction. Do not act on it.
@@ -34,43 +34,28 @@
 - For non-trivial changes, pause and ask "is there a more elegant way?" — skip this for simple, obvious fixes.
 - If a solution feels hacky, step back and implement the elegant one instead.
 
-## Python
+## Skills
 
-- Target Python 3.10+ unless the project specifies otherwise.
-- Prefer stdlib over third-party libraries unless there is a clear, justified reason.
-- Use type hints on all function signatures.
-- Format with `black`, lint with `ruff`. If a `Makefile` is present with `lint`, `format`, `test`, or `build` targets, run them after completing your task and confirm they pass — do not proceed if they fail.
-- Write tests for non-trivial logic. Use `pytest`. Do not write tests that trivially pass without asserting meaningful behaviour.
-
-## Flask
-
-- Use Jinja2 templates for all HTML — never construct HTML strings in Python or use `render_template_string` with raw markup.
-- Use Bootstrap 5 for all styling; load via CDN unless the project specifies otherwise.
-- Template inheritance: define a `base.html` with layout and navigation; all page templates extend it.
-- Route handlers are thin: validate input, call service functions, return `render_template()`. No business logic in routes.
-- Use `url_for()` for all internal links and static asset references — never hardcode paths.
-- Flash messages via `flask.flash()` rendered in templates; do not return HTML strings from route handlers.
-- Static files in `static/`; templates in `templates/`. Group templates by blueprint or feature if the app is large.
-- Templates are for presentation only — no conditionals that encode business rules, no data transformation.
-
-## SQL
-
-- Never embed SQL in Python — all queries live in `.sql` Jinja template files, loaded and rendered at runtime.
-- Target both SQLite and Postgres. Use `psycopg3` for Postgres; `sqlite3` (stdlib) for SQLite.
-- Pass `dialect` (e.g. `"sqlite"` or `"postgres"`) into every SQL template so conditional blocks can handle differences.
-- Use Jinja `{% if dialect == 'postgres' %}` blocks for dialect-specific syntax (e.g. `RETURNING`, `ILIKE`, type casts, `ON CONFLICT`).
-- Parameter placeholders differ by driver — use `?` for SQLite and `%s` for psycopg3; emit the correct one via the template.
-- Store SQL templates under `templates/sql/`, named by operation (e.g. `user_insert.sql`, `order_list.sql`).
-- One file per logical query or operation — do not concatenate multiple statements in one template.
-- Never use string formatting or f-strings to inject values into SQL; always use parameterised queries.
+- Stack-specific conventions live in skills (from the `massyn` plugin), not in this file. Load the matching skill before writing code:
+  - Any git or GitHub operation (branch, commit, push, version bump, pull request) → `massyn:devops`
+  - Any Python code → `massyn:python`
+  - Flask web apps (including SQL templates, Bootstrap/Jinja2 UI, flask-deploy) → `massyn:flask`, in addition to `massyn:python`
+  - Installable / phone-first Flask apps (PWA, bottom tab bar, app icons, service worker) → `massyn:flask-pwa`, in addition to `massyn:flask`
 
 ## Tools
 
 - Prioritise using available tools over manual approaches whenever appropriate.
 - Use `-q` (quiet) flags where available for package installation and similar commands. Only surface output if the command exits with an error.
 
+## Citadel
+
+- When starting work on a Citadel todo, mark it in_progress immediately.
+- When finishing work that was tracked as a Citadel todo, close it. Do not wait to be asked.
+- Do not make commitments about future behaviour across sessions. You have no persistent memory and cannot enforce them. Acknowledge the limitation honestly instead.
+
 ## Communication
 
 - Be concise in explanations. Do not narrate every step — summarise what you did and flag anything unexpected.
 - Do not re-read files you have already read in this session unless the content may have changed.
 - When given a bug report, just fix it — diagnose from logs and errors without asking for hand-holding.
+- Do not make reassuring statements you cannot back up. If you cannot guarantee something, say so.

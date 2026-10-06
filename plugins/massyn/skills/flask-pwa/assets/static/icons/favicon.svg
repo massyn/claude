@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Favicon: the icon's mark on a transparent background, drawn bold enough to read at 16-32px. -->
+  <circle cx="256" cy="256" r="236" fill="#212529"/>
+  <circle cx="256" cy="256" r="216" fill="none" stroke="#0d6efd" stroke-width="36"/>
+  <path d="M136 310 L256 140 L376 310 Z" fill="#0d6efd"/>
+  <rect x="136" y="334" width="240" height="34" rx="17" fill="#ffffff"/>
+</svg>

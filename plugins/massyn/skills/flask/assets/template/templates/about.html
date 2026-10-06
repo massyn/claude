@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}About{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <h1 class="display-5 fw-bold mb-4">About</h1>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Golden Template</h5>
+                <p class="card-text">
+                    This app is the canonical Flask starter for all projects in this portfolio.
+                    It demonstrates the patterns documented in <code>PATTERNS.md</code> — copy the
+                    <code>app/auth/</code> blueprint, <code>db.py</code>, and <code>config.py</code>
+                    into any new project to get auth and database support immediately.
+                </p>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Technology Stack</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Backend:</strong> Flask 3.1, Python 3.10+</li>
+                    <li class="list-group-item"><strong>Auth:</strong> Google OAuth via Authlib</li>
+                    <li class="list-group-item"><strong>Database:</strong> SQLite (dev) / Postgres (prod) via psycopg3</li>
+                    <li class="list-group-item"><strong>Frontend:</strong> Bootstrap 5.3, Jinja2</li>
+                    <li class="list-group-item"><strong>Server:</strong> Gunicorn + Nginx + systemd</li>
+                    <li class="list-group-item"><strong>Deploy:</strong> flask-deploy</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('main.index') }}" class="btn btn-outline-primary">Back to Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

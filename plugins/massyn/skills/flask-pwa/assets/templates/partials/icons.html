@@ -1,0 +1,4 @@
+{# icon('share') or icon('plus', 'pwa-icon pwa-icon-sm'): a stroke icon from app/icons.py. #}
+{% macro icon(name, cls='pwa-icon') -%}
+<svg class="{{ cls }}" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ icon_paths[name] }}"/></svg>
+{%- endmacro %}

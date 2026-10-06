@@ -1,0 +1,9 @@
+{
+  "name": "massyn",
+  "description": "Git workflow, Python, Flask and Flask PWA development conventions, Semgrep SAST triage, and the /coffee session handoff",
+  "author": {
+    "name": "Phil Massyn"
+  },
+  "repository": "https://github.com/massyn/claude",
+  "license": "MIT"
+}

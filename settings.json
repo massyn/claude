@@ -10,6 +10,18 @@
     "DISABLE_ERROR_REPORTING": "true",
     "DISABLE_TELEMETRY": "true"
 },
+"extraKnownMarketplaces": {
+    "massyn-tools": {
+      "source": {
+        "source": "github",
+        "repo": "massyn/claude"
+      },
+      "autoUpdate": true
+    }
+},
+"enabledPlugins": {
+    "massyn@massyn-tools": true
+},
 "permissions": {
     "allow": [
       "Bash(npm:*)",
@@ -104,9 +116,12 @@
       "WebFetch(domain:icons.getbootstrap.com)"
     ],
     "deny": [
-      "Bash(git add*)",
-      "Bash(git commit*)",
-      "Bash(git push*)"
+      "Bash(git push origin main*)",
+      "Bash(git push origin master*)",
+      "Bash(git push origin HEAD:main*)",
+      "Bash(git push origin HEAD:master*)",
+      "Bash(gh pr merge*)",
+      "Bash(gh pr review*)"
     ]
   }
 }
