@@ -92,3 +92,5 @@ Read the relevant file before working in that area:
 | `templates/` | `base.html`, page templates, `sql/` query templates |
 | `static/theme.css` | Colour variables — the single source of truth for the palette |
 | `.env.example` | Documents every environment variable |
+| `.gitattributes` | Stores and checks out every text file with LF endings (see the `devops` skill) |
+| `.editorconfig` | Editor settings — LF, UTF-8, final newline, 4-space indent |
