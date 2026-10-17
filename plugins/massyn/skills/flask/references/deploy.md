@@ -3,7 +3,8 @@
 Flask apps are deployed with [flask-deploy](https://github.com/massyn/flask-deploy) — a curl-able bash
 script that installs the app behind Gunicorn + Nginx + systemd on an Ubuntu/Debian server. The script
 itself stays in the flask-deploy repo (CI workflows curl it from `raw.githubusercontent.com`); this file
-documents the contract an app must meet.
+documents the contract an app must meet. The GitHub Actions runner packages the app and copies it to the
+server; the server never pulls from GitHub, so private repos need no token there.
 
 ## App contract
 
@@ -71,7 +72,7 @@ secret values). Set `FLASK_DEBUG=True`. Do not set `FORCE_HTTPS` locally.
 
 | Path | Purpose |
 |------|---------|
-| `/opt/<slug>/` | Git clone — disposable; `.env` is moved in here on each deploy |
+| `/opt/<slug>/` | App code unpacked from the deploy archive — disposable; `venv/` and `.env` are kept across deploys |
 | `/data/<slug>/` | Stateful data: SQLite databases, TLS certs — **backed up to S3** |
 | `/var/log/<slug>/` | `access.log`, `error.log` (Gunicorn), `nginx.access.log`, `nginx.error.log` |
 
@@ -81,8 +82,9 @@ secret values). Set `FLASK_DEBUG=True`. Do not set `FORCE_HTTPS` locally.
 |------|-------------|
 | `--slug` | Required. App identifier — used for directory and service names |
 | `--domain` | Required. Nginx `server_name` value(s), space-separated |
-| `--repo` | Required. Git URL; embed a read-only PAT for private repos (`https://<token>@github.com/...`) |
-| `--env` | Path to a `.env` file; moved (not copied) into the repo root after `git pull` |
+| `--source` | Path to a `.tar.gz` of the app on the server (from `git archive` on the runner); deleted once unpacked. Use this, not `--repo` |
+| `--repo` | Legacy alternative to `--source`: the server clones the Git URL itself. Do not use for new apps |
+| `--env` | Path to a `.env` file; moved (not copied) into the app directory |
 | `--ssl` | HTTPS using `/data/<slug>/public.pem` and `/data/<slug>/private.pem` |
 | `--cloudflare` | Only allow traffic from Cloudflare IP ranges |
 | `--password` | HTTP basic auth (username `admin`) |
@@ -101,8 +103,9 @@ Dry-run output — `[✗]` fails the run, `[!]` is a warning:
 
 ## GitHub Actions workflow
 
-Secrets live in GitHub Actions secrets. The `.env` is built fresh on the runner every deploy and
-`scp`'d to the server — it is never committed. Only `SLUG`, `REPO` and `HOSTS` change per app.
+Secrets live in GitHub Actions secrets. The runner checks out the commit, packages it with `git archive`,
+builds the `.env` fresh and `scp`s both to the server — the `.env` is never committed. Only `SLUG` and
+`HOSTS` change per app.
 
 ```yaml
 name: Deploy
@@ -116,10 +119,12 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SLUG: myapp
-      REPO: myapp
       HOSTS: "myapp.com www.myapp.com"
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh/
@@ -144,13 +149,20 @@ jobs:
           echo "APP_HOSTNAME=$(echo '${{ env.HOSTS }}' | tr ' ' ',')" >> .env
           echo "VERSION=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> .env
 
-      - name: Copy .env to server
-        run: scp .env external-machine:/tmp/${{ env.SLUG }}.env
+      - name: Package app
+        run: git archive --format=tar.gz -o app.tar.gz HEAD
+
+      - name: Copy app and .env to server
+        run: |
+          scp app.tar.gz external-machine:/tmp/${{ env.SLUG }}.tar.gz
+          scp .env external-machine:/tmp/${{ env.SLUG }}.env
 
       - name: Deploy Flask
-        run: ssh external-machine "curl -fsSL https://raw.githubusercontent.com/massyn/flask-deploy/main/deploy.sh | sudo bash -s -- --slug ${{ env.SLUG }} --domain \"${{ env.HOSTS }}\" --repo https://${{ secrets.PAT }}@github.com/massyn/${{ env.REPO }} --ssl --cloudflare --env /tmp/${{ env.SLUG }}.env"
+        run: ssh external-machine "curl -fsSL https://raw.githubusercontent.com/massyn/flask-deploy/main/deploy.sh | sudo bash -s -- --slug ${{ env.SLUG }} --domain \"${{ env.HOSTS }}\" --source /tmp/${{ env.SLUG }}.tar.gz --ssl --cloudflare --env /tmp/${{ env.SLUG }}.env"
 ```
 
+- `git archive` packages committed files only, so `.git`, `venv/` and `.env` never ship. Each deploy
+  replaces everything in `/opt/<slug>/` except `venv/` and `.env`.
 - The first `.env` line uses `>` so each run starts clean; every other line appends with `>>`.
 - `APP_HOSTNAME` is derived from `HOSTS` — `tr` turns the space-separated list into the comma-separated
   allow-list `config.py` expects. Writing `APP_HOSTNAME=${{ env.HOSTS }}` directly breaks multi-host apps.
@@ -158,7 +170,6 @@ jobs:
 - Drop `--ssl` if the app has no origin certificate.
 - Every new secret needs its own line here — intentional, keeps the wiring explicit.
 - Load secrets into GitHub with `gh secret set --env-file .env` (commented lines are ignored).
-- The PAT needs only **Contents: Read-only** on the target repo.
 
 ## Standing up a new site
 
