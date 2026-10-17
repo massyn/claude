@@ -1,6 +1,6 @@
 ---
 name: devops
-description: Git and GitHub workflow — working branches (named after the next PyPI version for packages), staging, commits, pushes, version bumps and pull requests, with hard limits on main/master and on PR approval. Use before running ANY git command that changes state (add, commit, push, merge, rebase, reset, tag, stash, checkout of files), before creating or updating a pull request, and whenever the user asks to commit, save, push, branch, release, publish, bump a version or "ship" work.
+description: Git and GitHub workflow — syncing with the remote before work starts, LF line endings, working branches (named after the next PyPI version for packages), staging, commits, pushes, version bumps and pull requests, with hard limits on main/master and on PR approval. Use before running ANY git command that changes state (add, commit, push, merge, rebase, reset, tag, stash, checkout of files), before creating or updating a pull request, and whenever the user asks to commit, save, push, branch, release, publish, bump a version or "ship" work.
 ---
 
 # Git workflow
@@ -33,6 +33,26 @@ task, stop and tell the user; never look for a workaround (such as doing the sam
    amending commits that are already pushed — unless the user explicitly asks for that specific action.
 5. **No skipping safeguards** — never `--no-verify`, never disable hooks or CI checks to get a commit or
    push through.
+
+## Sync before any work
+
+Before changing anything in a repo — at the start of every session and every new task — bring it up to
+date so work starts from the latest base:
+
+```bash
+git fetch --prune
+git branch --show-current
+git status -sb
+```
+
+- **On main:** `git pull --ff-only`, then create a working branch (below).
+- **On a working branch:** check whether its PR is already merged
+  (`gh pr list --head <branch> --state all`). If it is, that branch is finished — start new work from main
+  (below). If not, `git pull --ff-only` to pick up anything pushed to it from elsewhere.
+- **Main has moved on** (`git rev-list --count HEAD..origin/main` is above 0 on an unmerged working
+  branch): tell the user how many commits behind the branch is. Merge `origin/main` into it only if they
+  ask — never rebase a pushed branch (rule 4).
+- If any pull cannot fast-forward, stop and tell the user; never merge, rebase or reset to force it.
 
 ## Working branch
 
@@ -68,6 +88,7 @@ keep going — one branch, one PR.
 ## Committing
 
 - Check `git branch --show-current` (rule 1) and `git status` first.
+- Check line endings (see Line endings below).
 - Stage files by path (`git add path/to/file ...`). Never `git add -A` or `git add .` without reviewing
   `git status` — and never stage secrets (`.env`, `.env_dev`, keys, tokens), local databases or generated
   files (`gunicorn_config.py`, `venv/`, build output).
@@ -76,6 +97,27 @@ keep going — one branch, one PR.
 - Commit at logical points. Message: an imperative summary line of 72 characters or fewer
   ("Add Tenable exploit columns"), then a blank line and a short body explaining why, when it isn't obvious.
   British English.
+
+## Line endings — LF everywhere
+
+Every repo stores and checks out text files with LF endings, whatever OS the work is done on. This is
+fixed in the repo itself, not in each machine's `core.autocrlf`.
+
+- **`.gitattributes`:** if the repo has none, or it has no default rule, add this line:
+
+  ```
+  * text=auto eol=lf
+  ```
+
+  Commit it on its own ("Normalise line endings to LF") and tell the user in the summary — no need to
+  ask first. If `git ls-files --eol` then shows any `i/crlf` (stored with CRLF), run
+  `git add --renormalize .` and commit that as part of the same change. `text=auto` leaves binary files
+  alone; a file that must keep CRLF (`.bat`, `.cmd`) gets its own rule, e.g. `*.bat text eol=crlf`.
+- **Working copy:** before staging, look for CRLF on disk — `git ls-files --eol` (`w/crlf`) for tracked
+  files, `grep -lI $'\r' <file> ...` for new ones. Convert them in place with `sed -i 's/\r$//' <file>`.
+  Never renormalise with `git reset`, `git checkout` or `git rm --cached` — they discard uncommitted work.
+- **Machine settings** (`core.autocrlf input`, the editor saving LF) belong to the user. If CRLF keeps
+  appearing after `.gitattributes` is in place, say so rather than changing them.
 
 ## Pushing
 
