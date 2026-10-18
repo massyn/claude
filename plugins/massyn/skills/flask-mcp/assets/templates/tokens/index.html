@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}API token{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-7">
+
+<h5 class="text-muted fw-normal mb-4">API token</h5>
+
+{# ── Newly generated token, shown once ── #}
+{% if new_token %}
+<div class="alert alert-success">
+    <div class="fw-semibold mb-2">Token generated. Copy it now; it will not be shown in full again.</div>
+    <div class="input-group">
+        <input type="text" class="form-control font-monospace" id="new-token" value="{{ new_token }}" readonly>
+        <button class="btn btn-outline-secondary" type="button" data-copy="new-token">Copy</button>
+    </div>
+</div>
+{% endif %}
+
+{# ── Personal access token ── #}
+<div class="card mb-4">
+    <div class="card-body">
+        {% if pat %}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <div class="fw-semibold">Active token</div>
+                <div class="text-muted small">Created {{ pat.created_at | string | truncate(10, True, '') }}</div>
+            </div>
+            <span class="badge bg-success">Active</span>
+        </div>
+        <input type="text" class="form-control font-monospace text-muted mb-4"
+               value="{{ pat.access_token[:8] }}••••••••••••••••" readonly>
+        <div class="d-flex gap-2">
+            <form method="post" action="{{ url_for('pat.generate') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-outline-primary btn-sm">Regenerate</button>
+            </form>
+            <button type="button" class="btn btn-outline-danger btn-sm"
+                    data-bs-toggle="modal" data-bs-target="#revoke-pat-modal">Revoke</button>
+        </div>
+        {% else %}
+        <p class="text-muted mb-3">No token yet.</p>
+        <form method="post" action="{{ url_for('pat.generate') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-primary btn-sm">Generate token</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+{# ── OAuth sessions (Claude.ai connectors, Claude Code /mcp sign-in) ── #}
+<div class="card mb-4">
+    <div class="card-header fw-semibold">OAuth sessions</div>
+    <div class="card-body p-0">
+        {% if oauth_tokens %}
+        <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0 align-middle">
+            <thead class="table-dark">
+                <tr><th>Token</th><th>Client</th><th>Issued</th><th>Last used</th><th></th></tr>
+            </thead>
+            <tbody>
+                {% for t in oauth_tokens %}
+                <tr>
+                    <td class="font-monospace text-muted small">{{ t.access_token[:8] }}••••</td>
+                    <td class="small">{{ t.client_id[:20] }}</td>
+                    <td class="small text-muted">{{ t.created_at | string | truncate(10, True, '') }}</td>
+                    <td class="small text-muted">{{ t.last_used[:16] | replace('T', ' ') if t.last_used else '-' }}</td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-outline-danger btn-sm py-0"
+                                data-bs-toggle="modal" data-bs-target="#revoke-oauth-modal"
+                                data-token="{{ t.access_token }}">Revoke</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <p class="text-muted small p-3 mb-0">No active OAuth sessions.</p>
+        {% endif %}
+    </div>
+</div>
+
+{# ── Claude Code setup, shown with a freshly generated token ── #}
+{% if new_token %}
+<div class="card">
+    <div class="card-header fw-semibold">Connecting Claude Code</div>
+    <div class="card-body">
+        <p class="text-muted small mb-3">
+            Run this in a terminal. <code>--scope user</code> makes the server available in every
+            project; omit it to limit it to the current directory.
+        </p>
+        <div class="position-relative">
+            <pre class="bg-dark text-light p-3 rounded small mb-3" id="cli-block"><code>claude mcp add --transport http --scope user {{ server_name }} {{ server_url }} \
+  --header "Authorization: Bearer {{ new_token }}"</code></pre>
+            <button class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-2"
+                    type="button" data-copy="cli-block">Copy</button>
+        </div>
+        <p class="text-muted small mb-0">
+            Check the connection with <code>/mcp</code> inside Claude Code.
+        </p>
+    </div>
+</div>
+{% endif %}
+
+</div>
+</div>
+
+{# ── Confirm modals ── #}
+<div class="modal fade" id="revoke-pat-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-body">Revoke this token? Clients using it stop working until you generate a new one.</div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <form method="post" action="{{ url_for('pat.revoke') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-danger">Revoke token</button>
+            </form>
+        </div>
+    </div></div>
+</div>
+
+<div class="modal fade" id="revoke-oauth-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-body">Revoke this session? The client has to sign in again.</div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <form method="post" action="{{ url_for('pat.revoke_oauth') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="access_token" id="revoke-oauth-token">
+                <button type="submit" class="btn btn-danger">Revoke session</button>
+            </form>
+        </div>
+    </div></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/tokens.js') }}"></script>
+{% endblock %}

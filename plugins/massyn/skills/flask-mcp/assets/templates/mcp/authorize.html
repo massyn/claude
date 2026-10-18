@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Authorise{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-sm-8 col-md-6 col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body py-5 px-4">
+                <h4 class="card-title mb-1">Authorise access</h4>
+                <p class="text-muted small mb-4 text-break">{{ client_id }}</p>
+                <p class="mb-2">An application is requesting access to your data.</p>
+                <p class="mb-4">After you allow it, you will be sent to <strong class="text-break">{{ redirect_host }}</strong>.
+                    Only continue if you started this connection.</p>
+                <form method="post" action="{{ url_for('mcp.oauth_authorize_post') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="d-grid gap-2">
+                        <button type="submit" name="action" value="allow" class="btn btn-primary">Authorise</button>
+                        <button type="submit" name="action" value="deny" class="btn btn-outline-secondary">Deny</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

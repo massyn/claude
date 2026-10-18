@@ -17,6 +17,7 @@ Configuration for Claude Code: global instructions, settings, and a plugin marke
 | `skills/python` | `massyn:python` | Python conventions (typing, dotenv, logging, black/ruff, pytest) |
 | `skills/flask` | `massyn:flask` | Flask app conventions, golden template, flask-deploy contract |
 | `skills/flask-pwa` | `massyn:flask-pwa` | Installable phone-first Flask apps: manifest, icons, service worker, bottom tab bar |
+| `skills/flask-mcp` | `massyn:flask-mcp` | Remote MCP server inside a Flask app: OAuth 2.1 + PKCE, personal access tokens, JSON-RPC, tool registry |
 | `skills/sast` | `massyn:sast` | Semgrep SAST scan, triage and remediation plan |
 | `commands/coffee.md` | `/massyn:coffee` | Write a session handoff (local + Citadel) before `/clear` |
 
