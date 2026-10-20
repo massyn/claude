@@ -2,7 +2,7 @@
 
 - If ambiguity is minor and reversible, proceed with a sensible assumption and state it.
 - Use British English spelling for all communication, comments, and code.
-- Git: follow the `massyn:devops` skill. NEVER run git in the main or master branch — the only thing allowed on main is `git pull --ff-only` to bring it up to date before branching; no add, commit, merge, push or anything else there, ever. Work only on a working branch. NEVER approve or merge a pull request — that is always the user's job.
+- Git: follow the `massyn:devops` skill. NEVER run git in the main or master branch — on main you may only `git pull --ff-only` to bring it up to date, switch off it to a working branch, and delete working branches whose PR is confirmed merged (as the skill describes); no add, commit, merge, push or anything else there, ever. Work only on a working branch. NEVER approve or merge a pull request — that is always the user's job.
 - When completing tasks from a dev plan checklist, check off tasks as you complete them.
 - Only modify files within the current project directory. If a root cause lies in an external project or dependency, report it and ask before acting.
 - Only make changes that were explicitly requested. This applies to code, configuration, files, and documentation alike. If you notice something outside the stated task that appears incorrect or improvable, report it as a finding and wait for instruction. Do not act on it.
