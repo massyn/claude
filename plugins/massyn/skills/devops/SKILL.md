@@ -14,11 +14,13 @@ task, stop and tell the user; never look for a workaround (such as doing the sam
 1. **NEVER run git in the main or master branch. EVER.** Not allowed. Before every git command, run
    `git branch --show-current`. If it prints `main` or `master` (or the repo's default branch), the
    **only** thing you may do on it is bring it up to date, then leave:
-   - `git pull --ff-only` — the one and only operation allowed on main. If it cannot fast-forward
+   - `git pull --ff-only` — the one and only operation that changes main. If it cannot fast-forward
      (local main has diverged or has conflicts), stop and tell the user; never merge, rebase or reset
      main to fix it;
    - `git switch -c <branch>` (or `git switch <branch>`) to get off main. Uncommitted changes come along
-     to the new branch, so that is the way out when work was started on main.
+     to the new branch, so that is the way out when work was started on main;
+   - deleting a working branch whose PR is confirmed merged (see After the user merges). This removes
+     the branch, never anything on main itself.
 
    Everything else is forbidden while on main/master — `add`, `commit`, `merge`, `rebase`, `reset`,
    `revert`, `cherry-pick`, `stash`, `tag`, `restore`/`checkout` of files, `push`, and any other git
@@ -47,8 +49,8 @@ git status -sb
 
 - **On main:** `git pull --ff-only`, then create a working branch (below).
 - **On a working branch:** check whether its PR is already merged
-  (`gh pr list --head <branch> --state all`). If it is, that branch is finished — start new work from main
-  (below). If not, `git pull --ff-only` to pick up anything pushed to it from elsewhere.
+  (`gh pr list --head <branch> --state all`). If it is, that branch is finished — clean it up and start
+  new work from main (see After the user merges). If not, `git pull --ff-only` to pick up anything pushed to it from elsewhere.
 - **Main has moved on** (`git rev-list --count HEAD..origin/main` is above 0 on an unmerged working
   branch): tell the user how many commits behind the branch is. Merge `origin/main` into it only if they
   ask — never rebase a pushed branch (rule 4).
@@ -56,16 +58,19 @@ git status -sb
 
 ## Working branch
 
-All work happens on a working branch, created from an up-to-date main. Every time you start new work:
+All work happens on a working branch, created from an up-to-date main. Keep the house clean: never
+branch off a stale main. Every time you create a new branch, first switch to main and pull:
 
 ```bash
 git switch main          # commit or finish anything on the current working branch first
-git pull --ff-only       # make sure main is the latest — the only command ever run on main
+git pull --ff-only       # make sure main matches origin — the only command ever run on main
 git switch -c <branch>   # leave main immediately
 ```
 
-If a working branch for this piece of work already exists and its PR is not merged yet, switch to it and
-keep going — one branch, one PR.
+Be pragmatic about branches. If a working branch already exists and its PR is not merged yet, keep
+using it — further changes, even unrelated small ones, can go on the same branch and into the same PR.
+Don't create a new branch per change. A new branch is only needed once the current one has been merged
+(or the user asks for a separate one).
 
 ### Naming
 
@@ -162,5 +167,17 @@ packages, merging to main triggers the publish workflow.
 
 ## After the user merges
 
-Start the next piece of work the same way: `git switch main`, `git pull --ff-only` to pick up the merge,
-then `git switch -c <new branch>` (see Working branch). Don't delete merged branches unless asked.
+Once the PR is merged, the branch is done and goes. Confirm the merge first — never delete a branch on
+assumption:
+
+```bash
+gh pr list --head <branch> --state merged   # must list the PR; if not, keep the branch
+git switch main
+git pull --ff-only                           # main now contains the merge
+git branch -D <branch>                       # local branch (-D because squash merges defeat -d)
+git push origin --delete <branch>            # remote branch, if GitHub didn't already remove it
+git fetch --prune                            # drop stale remote-tracking refs
+```
+
+If the PR is closed without merging, or still open, leave the branch alone. Then start the next piece of
+work with `git switch -c <new branch>` from the freshly pulled main (see Working branch).
