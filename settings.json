@@ -113,7 +113,8 @@
       "WebFetch(domain:thehill.com)",
       "WebFetch(domain:cdn.jsdelivr.net)",
       "WebFetch(domain:getbootstrap.com)",
-      "WebFetch(domain:icons.getbootstrap.com)"
+      "WebFetch(domain:icons.getbootstrap.com)",
+      "mcp__citadel__*"
     ],
     "deny": [
       "Bash(git push origin main*)",
