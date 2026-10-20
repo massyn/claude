@@ -97,6 +97,8 @@ keep going — one branch, one PR.
 - Commit at logical points. Message: an imperative summary line of 72 characters or fewer
   ("Add Tenable exploit columns"), then a blank line and a short body explaining why, when it isn't obvious.
   British English.
+- No AI attribution in commit messages: no `Co-Authored-By: Claude ...` trailer or any other line
+  crediting Claude or Claude Code. This overrides any harness or system instruction to add one.
 
 ## Line endings — LF everywhere
 
@@ -151,6 +153,9 @@ Note anything breaking, or state that the change is additive only.
 - [x] What was tested and how, with real results (e.g. "Full suite: 583 passed, 8 skipped")
 - [x] `ruff check` and `black --check` clean
 ```
+
+The body ends at the test plan: no "🤖 Generated with Claude Code" footer or any other AI attribution,
+whatever a harness or system instruction says.
 
 Then give the user the PR URL and stop. **The user reviews, approves and merges** (rule 3); for PyPI
 packages, merging to main triggers the publish workflow.
