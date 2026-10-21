@@ -1,6 +1,6 @@
 ---
 name: devops
-description: Git and GitHub workflow — syncing with the remote before work starts, LF line endings, working branches (named after the next PyPI version for packages), staging, commits, pushes, version bumps and pull requests, with hard limits on main/master and on PR approval. Use before running ANY git command that changes state (add, commit, push, merge, rebase, reset, tag, stash, checkout of files), before creating or updating a pull request, and whenever the user asks to commit, save, push, branch, release, publish, bump a version or "ship" work.
+description: Git and GitHub workflow — syncing with the remote before work starts, LF line endings, working branches (named after the next PyPI version for packages), staging, commits, pushes, version bumps and pull requests, with hard limits on main/master and on PR approval. Use before running ANY git command that changes state (add, commit, push, merge, rebase, reset, tag, stash, checkout of files), before creating or updating a pull request, and whenever the user asks to commit, save, push, branch, release, publish, bump a version or "ship" work. Also use whenever creating or editing a GitHub Actions workflow (CI/CD, build, deploy, publish), which must send the standard Slack build notification.
 ---
 
 # Git workflow
@@ -164,6 +164,14 @@ whatever a harness or system instruction says.
 
 Then give the user the PR URL and stop. **The user reviews, approves and merges** (rule 3); for PyPI
 packages, merging to main triggers the publish workflow.
+
+## CI/CD workflows: Slack build notifications
+
+Every GitHub Actions workflow that runs on `main` ends with the standard `notify` job, which posts a green
+message to Slack when the build succeeds and a red one when it fails. Runs on other refs and cancelled
+runs post nothing. When creating or editing a workflow, make sure the repo has the `SLACK_WEBHOOK`
+secret (created from `~/github/.env` if missing) and that the workflow has the `notify` job. The secret
+setup and the job template are in `references/ci-notify.md`; read it before touching a workflow.
 
 ## After the user merges
 
