@@ -159,6 +159,59 @@ jobs:
 
       - name: Deploy Flask
         run: ssh external-machine "curl -fsSL https://raw.githubusercontent.com/massyn/flask-deploy/main/deploy.sh | sudo bash -s -- --slug ${{ env.SLUG }} --domain \"${{ env.HOSTS }}\" --source /tmp/${{ env.SLUG }}.tar.gz --ssl --cloudflare --env /tmp/${{ env.SLUG }}.env"
+
+  notify:
+    needs: [deploy]
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && !contains(needs.*.result, 'cancelled') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Slack
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          RESULT: ${{ contains(needs.*.result, 'failure') && 'failure' || 'success' }}
+          REPO: ${{ github.repository }}
+          WORKFLOW: ${{ github.workflow }}
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          SERVER: ${{ github.server_url }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          if [ -z "$SLACK_WEBHOOK" ]; then
+            echo "::warning::SLACK_WEBHOOK secret is not set; skipping Slack notification"
+            exit 0
+          fi
+          if [ "$RESULT" = success ]; then
+            colour="#2eb886"; title="Build succeeded"
+          else
+            colour="#a30200"; title="Build failed"
+          fi
+          payload=$(jq -n \
+            --arg colour "$colour" \
+            --arg title "$title: $REPO" \
+            --arg run_url "$SERVER/$REPO/actions/runs/$RUN_ID" \
+            --arg commit "<$SERVER/$REPO/commit/$SHA|${SHA:0:7}>" \
+            --arg message "${COMMIT_MSG%%$'\n'*}" \
+            --arg workflow "$WORKFLOW" \
+            --arg branch "$BRANCH" \
+            --arg actor "$ACTOR" \
+            '{attachments: [{
+              color: $colour,
+              fallback: $title,
+              title: $title,
+              title_link: $run_url,
+              text: $message,
+              fields: [
+                {title: "Workflow", value: $workflow, short: true},
+                {title: "Branch", value: $branch, short: true},
+                {title: "Commit", value: $commit, short: true},
+                {title: "Triggered by", value: $actor, short: true}
+              ],
+              ts: (now | floor)
+            }]}')
+          curl -fsS -X POST -H 'Content-Type: application/json' -d "$payload" "$SLACK_WEBHOOK" \
+            || echo "::warning::Slack notification failed"
 ```
 
 - `git archive` packages committed files only, so `.git`, `venv/` and `.env` never ship. Each deploy
@@ -170,6 +223,9 @@ jobs:
 - Drop `--ssl` if the app has no origin certificate.
 - Every new secret needs its own line here — intentional, keeps the wiring explicit.
 - Load secrets into GitHub with `gh secret set --env-file .env` (commented lines are ignored).
+- The `notify` job is the standard Slack build notification from the devops skill
+  (`devops/references/ci-notify.md`), which also covers creating the `SLACK_WEBHOOK` secret from
+  `~/github/.env`. Keep the two in step when changing the template.
 
 ## Standing up a new site
 
@@ -180,5 +236,5 @@ jobs:
    mode to **Full (strict)**.
 4. If the app uses Google login, create an OAuth client with redirect URI
    `https://<domain>/auth/callback`.
-5. Load the app's secrets into GitHub Actions secrets and add the workflow above.
+5. Load the app's secrets and `SLACK_WEBHOOK` into GitHub Actions secrets and add the workflow above.
 6. Push to `main` and watch the Actions log.
