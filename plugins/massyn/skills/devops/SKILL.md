@@ -1,6 +1,6 @@
 ---
 name: devops
-description: Git and GitHub workflow — syncing with the remote before work starts, LF line endings, working branches (named after the next PyPI version for packages), staging, commits, pushes, version bumps and pull requests, with hard limits on main/master and on PR approval. Use before running ANY git command that changes state (add, commit, push, merge, rebase, reset, tag, stash, checkout of files), before creating or updating a pull request, and whenever the user asks to commit, save, push, branch, release, publish, bump a version or "ship" work. Also use whenever creating or editing a GitHub Actions workflow (CI/CD, build, deploy, publish), which must send the standard Slack build notification.
+description: Git and GitHub workflow — syncing with the remote before work starts, LF line endings, working branches (named after the next PyPI version for packages), staging, commits, pushes, version bumps and pull requests, with hard limits on main/master and on PR approval. Use before running ANY git command that changes state (add, commit, push, merge, rebase, reset, tag, stash, checkout of files), before creating or updating a pull request, and whenever the user asks to commit, save, push, branch, release, publish, bump a version or "ship" work. Also use whenever creating or editing a GitHub Actions workflow (CI/CD, build, deploy, publish), which must send the standard Slack build notification, and whenever the user asks for repo housekeeping (open PRs, security alerts, issue triage).
 ---
 
 # Git workflow
@@ -172,6 +172,13 @@ message to Slack when the build succeeds and a red one when it fails. Runs on ot
 runs post nothing. When creating or editing a workflow, make sure the repo has the `SLACK_WEBHOOK`
 secret (created from `~/github/.env` if missing) and that the workflow has the `notify` job. The secret
 setup and the job template are in `references/ci-notify.md`; read it before touching a workflow.
+
+## Housekeeping
+
+When the user asks for housekeeping (or runs `/massyn:housekeeping`), sync the current repo, then give
+a read-only report on CI on main, open PRs, GitHub security alerts and open issues, offering "Shall I
+fix it?" where a fix applies. The steps and report format are in `references/housekeeping.md`; read it
+before starting.
 
 ## After the user merges
 

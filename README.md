@@ -20,6 +20,7 @@ Configuration for Claude Code: global instructions, settings, and a plugin marke
 | `skills/flask-mcp` | `massyn:flask-mcp` | Remote MCP server inside a Flask app: OAuth 2.1 + PKCE, personal access tokens, JSON-RPC, tool registry |
 | `skills/sast` | `massyn:sast` | Semgrep SAST scan, triage and remediation plan |
 | `commands/coffee.md` | `/massyn:coffee` | Write a session handoff (local + Citadel) before `/clear` |
+| `commands/housekeeping.md` | `/massyn:housekeeping` | Sync the repo, then triage CI, open PRs, security alerts and issues (read-only) |
 
 Skills load automatically when a task matches their description.
 
