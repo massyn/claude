@@ -2,7 +2,7 @@
 
 ## Google OAuth
 
-Copy `assets/template/app/auth/` and `templates/login.html` into the project — do not rewrite them.
+Copy `assets/template/app/auth/` and `templates/login.html` into the project - do not rewrite them.
 Update `app.*` imports to the project's package name.
 
 | Route | Purpose |
@@ -23,10 +23,10 @@ the test route redirects to login and the code path is inert.
 ## OAuth redirect URI behind a proxy
 
 Flask runs behind Nginx (and usually Cloudflare), so `url_for(..., _external=True)` alone produces
-`http://` URLs and builds the host from the client-supplied `Host` header — a Host-header-injection
+`http://` URLs and builds the host from the client-supplied `Host` header - a Host-header-injection
 risk that lets an attacker steer the OAuth redirect to their own domain.
 
-- Do not use a `BASE_URL` setting — it hardcodes the domain.
+- Do not use a `BASE_URL` setting - it hardcodes the domain.
 - Do not rely on `ProxyFix` alone.
 - Use `get_oauth_redirect_uri()` from `auth/service.py`, which:
   1. Picks the scheme from Cloudflare's `CF-Visitor` header, then `FORCE_HTTPS`, then Flask's own.
@@ -37,8 +37,8 @@ Set `APP_HOSTNAME` for every deployed app, comma-separated when several hostname
 
 ## Client IP
 
-Never use `request.remote_addr` directly — it is the proxy's address. Never trust
-`X-Forwarded-For` — it is client-controlled.
+Never use `request.remote_addr` directly - it is the proxy's address. Never trust
+`X-Forwarded-For` - it is client-controlled.
 
 ```python
 def get_remote_ip() -> str:
@@ -56,10 +56,10 @@ Use the same function as the key for anything per-client, including the rate lim
 
 | App type | Policy |
 |----------|--------|
-| General | Persistent — `session.permanent = True`, 30-day `PERMANENT_SESSION_LIFETIME` |
-| Sensitive (credentials, secrets, security configuration) | Non-persistent — do **not** set `session.permanent` |
+| General | Persistent - `session.permanent = True`, 30-day `PERMANENT_SESSION_LIFETIME` |
+| Sensitive (credentials, secrets, security configuration) | Non-persistent - do **not** set `session.permanent` |
 
-`SESSION_COOKIE_SECURE` is derived from `FLASK_DEBUG` — `True` in production, `False` in local dev:
+`SESSION_COOKIE_SECURE` is derived from `FLASK_DEBUG` - `True` in production, `False` in local dev:
 
 ```python
 SESSION_COOKIE_SECURE = os.environ.get('FLASK_DEBUG', 'False').lower() != 'true'
@@ -100,7 +100,7 @@ Talisman(
 )
 ```
 
-- A strict CSP silently breaks Bootstrap and inline scripts — whitelist every third-party origin in the
+- A strict CSP silently breaks Bootstrap and inline scripts - whitelist every third-party origin in the
   directive it is used for.
 - Prefer moving inline `<script>`/`<style>` into static files. If an inline block is unavoidable, relax
   CSP on that route only with the `@talisman(content_security_policy=...)` decorator rather than adding

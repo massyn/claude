@@ -47,7 +47,7 @@ rows = query('user_by_google_id.sql', (google_id,))
 execute('user_insert.sql', (google_id, name, email))
 ```
 
-Values are always passed as `params` — never interpolated into the template. Template variables are for
+Values are always passed as `params` - never interpolated into the template. Template variables are for
 structure only (dialect, and whitelisted identifiers such as a validated sort column).
 
 ## Dynamic sorting and pagination
@@ -64,4 +64,4 @@ LIMIT {% if dialect == 'sqlite' %}? OFFSET ?{% else %}%s OFFSET %s{% endif %}
 
 The route (or service) validates `sort` against an explicit allow-list and `direction` against
 `{'asc', 'desc'}` before rendering. Add a `db.py` function that forwards kwargs to `render_sql` when a
-project first needs this — the template's `query()` does not take template kwargs.
+project first needs this - the template's `query()` does not take template kwargs.

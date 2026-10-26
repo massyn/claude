@@ -30,7 +30,7 @@ existing context processor:
 
 ## `templates/base.html`
 
-1. **Head** — delete the template's own `<meta name="viewport">` (the partial supplies one with
+1. **Head** - delete the template's own `<meta name="viewport">` (the partial supplies one with
    `viewport-fit=cover`) and include the partial after `theme.css`:
 
    ```html
@@ -39,14 +39,14 @@ existing context processor:
    {% block extra_css %}{% endblock %}
    ```
 
-2. **Navbar** — delete the `navbar-toggler` button. Keep `navbar-expand-lg` and the
+2. **Navbar** - delete the `navbar-toggler` button. Keep `navbar-expand-lg` and the
    `collapse navbar-collapse` wrapper: below `lg` the links stay hidden and the tab bar takes over.
 
    ```html
    {# No toggler: below lg these links stay hidden and partials/tab_bar.html takes over. #}
    ```
 
-3. **Footer** — give the footer the `site-footer` class so it hides when installed on a phone, and put
+3. **Footer** - give the footer the `site-footer` class so it hides when installed on a phone, and put
    the shared confirm modal before it:
 
    ```html
@@ -54,7 +54,7 @@ existing context processor:
    <footer class="site-footer text-center text-muted small py-2">
    ```
 
-4. **End of body** — after Bootstrap's bundle (confirm.js needs `bootstrap.Modal`):
+4. **End of body** - after Bootstrap's bundle (confirm.js needs `bootstrap.Modal`):
 
    ```html
    <script src="{{ url_for('static', filename='js/confirm.js') }}"></script>

@@ -1,6 +1,6 @@
 ---
 name: python
-description: Python coding conventions — Python 3.10+, type hints, stdlib-first dependencies, python-dotenv configuration, logging in except blocks, black/ruff formatting, Makefile targets, and pytest testing. Use whenever writing, modifying, reviewing or testing Python code (.py files, requirements.txt, pyproject.toml, Makefile targets for a Python project), including Flask apps, scripts and CLIs — even if the user doesn't say "Python" explicitly.
+description: Python coding conventions - Python 3.10+, type hints, stdlib-first dependencies, python-dotenv configuration, logging in except blocks, black/ruff formatting, Makefile targets, and pytest testing. Use whenever writing, modifying, reviewing or testing Python code (.py files, requirements.txt, pyproject.toml, Makefile targets for a Python project), including Flask apps, scripts and CLIs - even if the user doesn't say "Python" explicitly.
 ---
 
 # Python development
@@ -19,14 +19,14 @@ description: Python coding conventions — Python 3.10+, type hints, stdlib-firs
 ## Error handling and logging
 
 - In an `except` block, use `logger.exception(...)` (no `exc`/`%s` interpolation needed) instead of
-  `logger.error(..., exc)` — it captures the full traceback automatically, which a formatted error
+  `logger.error(..., exc)` - it captures the full traceback automatically, which a formatted error
   message alone discards.
 
 ## Formatting, linting and build
 
 - Format with `black`, lint with `ruff`.
 - If a `Makefile` is present with `lint`, `format`, `test`, or `build` targets, run them after completing
-  your task and confirm they pass — do not proceed if they fail.
+  your task and confirm they pass - do not proceed if they fail.
 
 ## Testing
 
