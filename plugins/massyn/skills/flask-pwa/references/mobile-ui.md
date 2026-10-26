@@ -14,12 +14,12 @@ coloured from `theme.css` variables so it follows the app's palette.
   ending in **Sign in**.
 - `body` gets bottom padding equal to the bar height plus the safe-area inset, so the page end is never
   hidden behind it.
-- When installed on a phone (`@media (display-mode: standalone)`), the footer is hidden — its links live
+- When installed on a phone (`@media (display-mode: standalone)`), the footer is hidden - its links live
   on the Me tab.
 
 ## Icons
 
-Inline SVG strokes on a 24px grid, `stroke="currentColor"`, width 1.8, round caps and joins — they take
+Inline SVG strokes on a 24px grid, `stroke="currentColor"`, width 1.8, round caps and joins - they take
 the text colour and stay crisp at any size.
 
 - Paths live in `app/icons.py` (`UI_ICONS`; add app-specific ones to `APP_ICONS`), exposed to templates
@@ -29,14 +29,14 @@ the text colour and stay crisp at any size.
   one source.
 - Pair icons with text. An icon-only button uses `.btn .pwa-icon-btn` (44px square) **and** an
   `aria-label`.
-- Domain icons (Kickstand's fuel, coffee, scenic waypoint kinds) are worth drawing in the same style —
+- Domain icons (Kickstand's fuel, coffee, scenic waypoint kinds) are worth drawing in the same style -
   they make lists scannable. Keep emoji for text that leaves the app (WhatsApp messages), not the UI.
 
 ## Touch and readability
 
 - Minimum 44px tap targets: `.btn`, inputs and selects get `min-height: 44px`; `.btn-lg` is 56px for the
   page's main action.
-- Inputs at `font-size: 1rem` — anything smaller makes iOS zoom the page on focus.
+- Inputs at `font-size: 1rem` - anything smaller makes iOS zoom the page on focus.
 - Muted text at a contrast of about 7:1 against the background for outdoor reading (Kickstand: `#a6a6a6`
   on `#111111`). Bootstrap's default `text-muted` is too faint on dark themes.
 - Numbers that line up in columns (times, distances, counts): `font-variant-numeric: tabular-nums`.

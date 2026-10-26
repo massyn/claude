@@ -2,9 +2,9 @@
 
 ## What `static/sw.js` does
 
-- **install** — opens cache `CACHE` and stores every URL in `PRECACHE`.
-- **activate** — deletes caches with any other name, so bumping `CACHE` clears old copies.
-- **fetch** — for same-origin GETs only: try the network, and if it fails return the cached copy. Every
+- **install** - opens cache `CACHE` and stores every URL in `PRECACHE`.
+- **activate** - deletes caches with any other name, so bumping `CACHE` clears old copies.
+- **fetch** - for same-origin GETs only: try the network, and if it fails return the cached copy. Every
   other request is left to the browser untouched.
 
 Only `PRECACHE` URLs have a cached copy; other pages show the browser's offline error. That is

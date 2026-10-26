@@ -4,7 +4,7 @@ from datetime import timedelta
 _database_url = os.environ.get('DATABASE_URL', '')
 if not _database_url:
     raise RuntimeError(
-        'DATABASE_URL is required — set it in your .env file. No default is provided.'
+        'DATABASE_URL is required - set it in your .env file. No default is provided.'
     )
 
 

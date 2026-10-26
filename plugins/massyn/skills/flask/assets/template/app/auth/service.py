@@ -24,7 +24,7 @@ def get_oauth_redirect_uri() -> str:
         hostname = request.host if request.host in trusted_hostnames else trusted_hostnames[0]
         return f'{scheme}://{hostname}{url_for("auth.callback")}'
 
-    # No trusted hostnames configured — falls back to request.host, which is
+    # No trusted hostnames configured - falls back to request.host, which is
     # attacker-controllable via the Host header. Set APP_HOSTNAME in production.
     return url_for('auth.callback', _external=True, _scheme=scheme)
 

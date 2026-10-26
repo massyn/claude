@@ -1,5 +1,5 @@
 """
-deploy.py — sync the repo settings.json into ~/.claude/settings.json and copy CLAUDE.md.
+deploy.py - sync the repo settings.json into ~/.claude/settings.json and copy CLAUDE.md.
 
 Synced settings:
   - permissions/allow and permissions/deny
@@ -65,20 +65,20 @@ def sync_mapping(section: str, source_map: dict, target_map: dict) -> bool:
     )
 
     if to_add:
-        print(f"\n{section} — adding {len(to_add)} new key(s):")
+        print(f"\n{section} - adding {len(to_add)} new key(s):")
         for key in to_add:
             print(f"  + {key}")
             target_map[key] = source_map[key]
     else:
-        print(f"\n{section} — nothing to add.")
+        print(f"\n{section} - nothing to add.")
 
     if conflicts:
-        print(f"\n{section} — {len(conflicts)} key(s) differ between source and target (target kept):")
+        print(f"\n{section} - {len(conflicts)} key(s) differ between source and target (target kept):")
         for key in conflicts:
             print(f"  ! {key}: source={json.dumps(source_map[key])} target={json.dumps(target_map[key])}")
 
     if proposals:
-        print(f"\n{section} — {len(proposals)} key(s) in target but NOT in source (proposals to add to repo):")
+        print(f"\n{section} - {len(proposals)} key(s) in target but NOT in source (proposals to add to repo):")
         for key in proposals:
             print(f"  ? {key}")
 
@@ -88,7 +88,7 @@ def sync_mapping(section: str, source_map: dict, target_map: dict) -> bool:
 def sync_file(source: Path, target: Path) -> None:
     name = source.name
     if not source.exists():
-        print(f"{name} — source not found, skipping: {source}", file=sys.stderr)
+        print(f"{name} - source not found, skipping: {source}", file=sys.stderr)
         return
 
     source_lines = source.read_text(encoding="utf-8").splitlines(keepends=True)
@@ -106,13 +106,13 @@ def sync_file(source: Path, target: Path) -> None:
     ))
 
     if not diff:
-        print(f"\n{name} — no changes.")
+        print(f"\n{name} - no changes.")
         return
 
-    print(f"\n{name} — diff:")
+    print(f"\n{name} - diff:")
     print("".join(diff), end="")
     shutil.copy2(source, target)
-    print(f"\n{name} — copied to {target}")
+    print(f"\n{name} - copied to {target}")
 
 
 def main() -> int:
@@ -141,16 +141,16 @@ def main() -> int:
         to_add, proposals = sync_list(section, source_items, target_items)
 
         if to_add:
-            print(f"\npermissions/{section} — adding {len(to_add)} new entr{'y' if len(to_add) == 1 else 'ies'}:")
+            print(f"\npermissions/{section} - adding {len(to_add)} new entr{'y' if len(to_add) == 1 else 'ies'}:")
             for item in to_add:
                 print(f"  + {item}")
                 target_items.append(item)
             changed = True
         else:
-            print(f"\npermissions/{section} — nothing to add.")
+            print(f"\npermissions/{section} - nothing to add.")
 
         if proposals:
-            print(f"\npermissions/{section} — {len(proposals)} entr{'y' if len(proposals) == 1 else 'ies'} in target but NOT in source (proposals to add to repo):")
+            print(f"\npermissions/{section} - {len(proposals)} entr{'y' if len(proposals) == 1 else 'ies'} in target but NOT in source (proposals to add to repo):")
             for item in proposals:
                 print(f"  ? {item}")
 
