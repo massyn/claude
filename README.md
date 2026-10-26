@@ -3,17 +3,17 @@ Configuration for Claude Code: global instructions, settings, and a plugin marke
 
 | Path | Purpose |
 |------|---------|
-| [CLAUDE.md](CLAUDE.md) | Universal behaviour rules — copied to `~/.claude/CLAUDE.md` |
-| [settings.json](settings.json) | Permissions and plugin registration — merged into `~/.claude/settings.json` |
+| [CLAUDE.md](CLAUDE.md) | Universal behaviour rules - copied to `~/.claude/CLAUDE.md` |
+| [settings.json](settings.json) | Permissions and plugin registration - merged into `~/.claude/settings.json` |
 | [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json) | Makes this repo the `massyn-tools` plugin marketplace |
-| [plugins/massyn/](plugins/massyn/) | The `massyn` plugin — skills and commands |
+| [plugins/massyn/](plugins/massyn/) | The `massyn` plugin - skills and commands |
 | [deploy.py](deploy.py) | Syncs `CLAUDE.md` and `settings.json` into `~/.claude` |
 
 ## The `massyn` plugin
 
 | Component | Invoke as | Purpose |
 |-----------|-----------|---------|
-| `skills/devops` | `massyn:devops` | Git workflow: working branches (PyPI version names), commits, PRs — never on main, never approves PRs |
+| `skills/devops` | `massyn:devops` | Git workflow: working branches (PyPI version names), commits, PRs - never on main, never approves PRs |
 | `skills/python` | `massyn:python` | Python conventions (typing, dotenv, logging, black/ruff, pytest) |
 | `skills/flask` | `massyn:flask` | Flask app conventions, golden template, flask-deploy contract |
 | `skills/flask-pwa` | `massyn:flask-pwa` | Installable phone-first Flask apps: manifest, icons, service worker, bottom tab bar |
@@ -46,7 +46,7 @@ claude plugin install massyn@massyn-tools
 Push to `main`. The marketplace has `autoUpdate` on, so each machine picks up the new commit during its next
 session (then `/reload-plugins`, or restart). To update immediately: `claude plugin update massyn@massyn-tools`.
 
-The plugin deliberately has no `version` field — Claude Code uses the commit SHA as the version, so every push
+The plugin deliberately has no `version` field - Claude Code uses the commit SHA as the version, so every push
 is an update. `claude plugin validate` warns about the missing version; that warning is expected.
 
 ## Developing locally
