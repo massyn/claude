@@ -64,6 +64,8 @@ both. For an installable, phone-first app, the `flask-pwa` skill adds the PWA la
 - Never trust `request.remote_addr` or `X-Forwarded-For` for the client IP - use `get_remote_ip()`.
 - Never build OAuth redirect URIs from the raw `Host` header - use `get_oauth_redirect_uri()` with the
   `APP_HOSTNAME` allow-list.
+- Passkeys come with the template (`app/auth/passkeys.py`) - never hand-roll WebAuthn verification.
+  Every sign-in method finishes with `establish_session(user)` and redirects to `after_login_url()`.
 - CSRF protection (`flask-wtf`) on every app; every POST form carries `csrf_token`.
 - Security headers via Flask-Talisman, with every CDN origin whitelisted in the CSP.
 - Never delete on GET - destructive actions POST to a dedicated route after a Bootstrap modal confirm.
@@ -75,7 +77,7 @@ Read the relevant file before working in that area:
 | File | Read when |
 |------|-----------|
 | `references/deploy.md` | Touching `run.py`, `.env*`, `requirements.txt`, `.gitignore`, the GitHub Actions workflow, or deploying a new site |
-| `references/security.md` | Auth, sessions, OAuth, client IP, CSRF, Talisman/CSP, rate limiting |
+| `references/security.md` | Auth, sessions, OAuth, passkeys, client IP, CSRF, Talisman/CSP, rate limiting |
 | `references/ui.md` | Templates, navbar, theming/CSS, list views, pagination, sorting, footer, analytics tag |
 | `references/sql.md` | Adding queries or schema, or working with `db.py` |
 
@@ -86,10 +88,13 @@ Read the relevant file before working in that area:
 | `run.py` | Entry point - dotenv loading, `app = create_app()`, dev server block |
 | `config.py` | `Config` class; every value from env vars |
 | `app/__init__.py` | App factory - CSRF, rate limiter, OAuth, blueprints, error handlers, context processor |
-| `app/db.py` | Connection handling (SQLite / Postgres) and SQL template rendering |
+| `app/db.py` | Connection handling (SQLite / Postgres), SQL template rendering, `execute_batch`, `SCHEMA_FILES` |
 | `app/main.py` | Public routes blueprint |
 | `app/auth/` | Google OAuth blueprint, `find_or_create_user`, `get_remote_ip`, `get_oauth_redirect_uri`, `login_required` |
-| `templates/` | `base.html`, page templates, `sql/` query templates |
+| `app/auth/passkeys.py`, `passkey_routes.py` | Passkey (WebAuthn) sign-up, sign-in and management |
+| `templates/` | `base.html`, page templates (incl. `passkey_signup.html`, `passkeys.html`), `sql/` query templates |
+| `static/js/csrf.js` | `postJSON()` - page scripts POST JSON with the CSRF token from the `csrf-token` meta tag |
+| `static/js/passkeys.js` | Drives `data-passkey="login"` / `data-passkey="register"` buttons |
 | `static/theme.css` | Colour variables - the single source of truth for the palette |
 | `.env.example` | Documents every environment variable |
 | `.gitattributes` | Stores and checks out every text file with LF endings (see the `devops` skill) |

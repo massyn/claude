@@ -34,7 +34,7 @@ indistinguishable to the MCP endpoint.
 1. Copy `assets/` into the project (it mirrors the project layout): `app/mcp/`, `app/pat.py`,
    `templates/mcp/`, `templates/tokens/`, `templates/sql/mcp_*.sql`, `templates/sql/user_by_id.sql`,
    `static/js/tokens.js`, `tests/test_mcp.py`. Rename `app.` imports to the project package.
-2. Wire config, the app factory, `db.init_db`, the Google callbacks and `base.html` as in
+2. Wire config, the app factory, `db.SCHEMA_FILES`, `after_login_url()` and `base.html` as in
    `references/wiring.md`.
 3. Rewrite `SYSTEM_PROMPT` in `app/mcp/instructions.py` for the app's domain.
 4. Replace or extend the example `whoami` tool with the app's tools - `references/tools.md`.
@@ -72,7 +72,7 @@ indistinguishable to the MCP endpoint.
 
 | File | Read when |
 |------|-----------|
-| `references/wiring.md` | Adding MCP to an app - config, app factory, `init_db`, Google callback and nav changes |
+| `references/wiring.md` | Adding MCP to an app - config, app factory, schema files, post-sign-in redirect and nav changes |
 | `references/auth.md` | Discovery, OAuth flow, PKCE, token storage, PATs, consent page, security trade-offs |
 | `references/protocol.md` | The endpoint, JSON-RPC methods, SSE vs JSON, batches, `initialize` instructions |
 | `references/tools.md` | Adding a tool - schema, handler, description writing, argument handling, SQL |

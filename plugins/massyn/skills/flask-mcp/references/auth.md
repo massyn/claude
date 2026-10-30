@@ -70,7 +70,7 @@ go through Bootstrap confirm modals.
 ## Session instructions at sign-in
 
 If the app needs per-user state to exist before the first MCP session (Citadel creates a per-user
-"autoexec" entry), create it in `_establish_session()` in the Google callback and again, idempotently,
+"autoexec" entry), create it in `establish_session()`, which every sign-in method calls, and again, idempotently,
 in `build_instructions()`. Log failures with `logger.exception`; never swallow them with `pass`.
 
 ## Security trade-offs (inherited from Citadel - decide per app)

@@ -36,39 +36,34 @@ cross-site. Do not move it to a separate CSRF-protected blueprint unless you als
 
 ## `app/db.py`
 
-The golden `init_db()` runs `schema.sql` with a single `cursor.execute()`, which SQLite rejects for
-more than one statement. Replace it so it runs every schema file, statement by statement:
+The golden `init_db()` runs every file in `SCHEMA_FILES`, statement by statement. Add the MCP schema
+after `schema.sql`, which it references through `users(id)`:
 
 ```python
-def init_db(app) -> None:
-    with app.app_context():
-        conn, dialect = get_db()
-        for template in ('schema.sql', 'mcp_schema.sql'):
-            sql = render_sql(template, dialect)
-            if dialect == 'sqlite':
-                conn.executescript(sql)
-            else:
-                cur = conn.cursor()
-                for stmt in sql.split(';'):
-                    if stmt.strip():
-                        cur.execute(stmt)
-        conn.commit()
+SCHEMA_FILES = ('schema.sql', 'mcp_schema.sql')
 ```
 
-`mcp_schema.sql` references `users(id)`, so it runs after `schema.sql`.
+An app built from an older template whose `init_db()` runs `schema.sql` with a single
+`cursor.execute()` needs the current golden `init_db()` first: SQLite rejects more than one statement
+per `execute()`.
 
 ## `app/auth/__init__.py`
 
 When a client sends an unauthenticated user to `/oauth/authorize`, the request is parked in
-`session['mcp_oauth']` and the user is sent to Google. After sign-in they must land back on the
-consent page, not the home page. In **both** `callback()` and `test_callback()`, replace the final
-`return redirect(url_for('main.index'))` with:
+`session['mcp_oauth']` and the user is sent to sign in. After sign-in they must land back on the
+consent page, not the home page. Every sign-in route (Google, `TEST_USER`, passkeys) redirects to
+`after_login_url()`, so change that one function:
 
 ```python
-if session.get('mcp_oauth'):
-    return redirect(url_for('mcp.oauth_authorize'))
-return redirect(url_for('main.index'))
+def after_login_url() -> str:
+    # Signing in to connect Claude: back to the consent page with the parked request.
+    if session.get('mcp_oauth'):
+        return url_for('mcp.oauth_authorize')
+    return url_for('main.index')
 ```
+
+An app built from an older template without `after_login_url()` makes the same change at the end of
+both `callback()` and `test_callback()`.
 
 ## `templates/base.html`
 
