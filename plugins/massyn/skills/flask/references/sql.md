@@ -4,7 +4,9 @@
 
 All SQL is in `templates/sql/` as Jinja templates, one file per logical query, named by operation
 (`user_insert.sql`, `order_list.sql`). `schema.sql` creates tables with `CREATE TABLE IF NOT EXISTS` and is
-run by `init_db()` at start-up.
+run by `init_db()` at start-up. `init_db()` runs every file in `db.SCHEMA_FILES`, in order, statement
+by statement - add a feature's schema file to that tuple. Postgres statements are split on `;`, so
+never put a semicolon inside a SQL comment.
 
 Every template receives `dialect` (`"sqlite"` or `"postgres"`) and emits the right placeholders:
 
@@ -23,7 +25,7 @@ CREATE TABLE IF NOT EXISTS users (
     {% else %}
     id SERIAL PRIMARY KEY,
     {% endif %}
-    google_id TEXT UNIQUE NOT NULL,
+    google_id TEXT UNIQUE,
     created_on {% if dialect == 'sqlite' %}DATETIME{% else %}TIMESTAMP{% endif %} DEFAULT CURRENT_TIMESTAMP
 )
 ```
@@ -40,11 +42,12 @@ timestamp types.
 |----------|-----|
 | `query(template, params)` | Run a SELECT; returns `list[dict]` |
 | `execute(template, params)` | Run a write and commit |
+| `execute_batch([(template, params), ...])` | Run several writes in one transaction - all apply or none do |
 | `render_sql(template, dialect, **kwargs)` | Render a template directly (rarely needed) |
 
 ```python
 rows = query('user_by_google_id.sql', (google_id,))
-execute('user_insert.sql', (google_id, name, email))
+execute('user_insert.sql', (google_id, name, email, new_passkey_handle()))
 ```
 
 Values are always passed as `params` - never interpolated into the template. Template variables are for
