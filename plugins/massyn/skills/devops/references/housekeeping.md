@@ -1,7 +1,7 @@
 # Housekeeping
 
 A health check of the **current repo only**: bring it up to date, then report on CI, open pull
-requests, security alerts and issues. The check itself is read-only. Nothing is written to GitHub and
+requests, security alerts, issues and repository layout. The check itself is read-only. Nothing is written to GitHub and
 nothing is changed locally beyond the sync, until the user says yes to a specific fix.
 
 Run the steps in order, then give one report (see Report).
@@ -73,17 +73,41 @@ End each issue that could be fixed in this repo with **"Shall I fix it?"**. Writ
 no comments, labels, assignees or closing. Those are visible to others and need explicit
 authorisation for that specific action.
 
+## 6. Repository layout: report drift, then offer a fix
+
+Compare the repo with "Repository layout" in the skill:
+
+```bash
+ls -a                                                    # top-level folders
+git check-ignore -v .venv/ .cache/ data/ .env            # each should be ignored
+git ls-files .venv .cache data .env venv env             # anything listed is tracked but shouldn't be
+git ls-files etc                                         # committed config, to check for secrets
+```
+
+Report:
+
+- **`.gitignore` gaps:** layout entries that are missing.
+- **Tracked files that should be ignored:** the paths and how many. The fix is `git rm --cached`; say
+  that it removes them from the repo on the next push, leaves them on disk, and leaves them in history.
+- **Misnamed folders:** e.g. `venv/`, `env/`, `models/`, `downloads/`, `output/`, `config/`, with the
+  layout folder each maps to and the code, scripts and docs that refer to it (search for the path).
+- **Secrets in committed config:** keys, tokens or passwords in `etc/` or other committed config files.
+  Rotating them is the user's job; the offer only covers moving the value into `.env`.
+
+End each item with **"Shall I fix it?"**. Don't change anything locally until the user says yes.
+
 ## Report
 
 One report in chat, most urgent first:
 
 1. Red CI on main
-2. Secret alerts
+2. Secret alerts, and secrets found in committed config
 3. Critical and high security alerts
 4. Other security alerts
 5. Open PRs, oldest first
 6. Issues, by priority
-7. Merged branches that can be deleted
+7. Repository layout drift
+8. Merged branches that can be deleted
 
 Say "none" for an empty section, and "not enabled" for a security feature that is off. Then stop and
 wait.

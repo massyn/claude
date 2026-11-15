@@ -1,5 +1,5 @@
 ---
-description: Sync the current repo, then triage CI, open PRs, security alerts and issues (read-only)
+description: Sync the current repo, then triage CI, open PRs, security alerts, issues and repo layout (read-only)
 ---
 
 Load the `massyn:devops` skill, then run the housekeeping job in its `references/housekeeping.md`

@@ -15,6 +15,10 @@ description: Python coding conventions - Python 3.10+, type hints, stdlib-first 
 
 - Add `from dotenv import load_dotenv` to all solutions, and call `load_dotenv()` in the entry point
   before any configuration is read.
+- Create the virtual environment in `.venv/` (`python -m venv .venv`).
+- Read file locations from the environment, with defaults from the repository layout in the devops
+  skill: downloads, models and caches under `.cache/`, produced output under `data/`, committed
+  configuration under `etc/` (e.g. `os.getenv("MODEL_DIR", ".cache/models")`).
 
 ## Error handling and logging
 
@@ -30,5 +34,10 @@ description: Python coding conventions - Python 3.10+, type hints, stdlib-first 
 
 ## Testing
 
-- Write tests for non-trivial logic. Use `pytest`.
-- Do not write tests that trivially pass without asserting meaningful behaviour.
+- Test conservatively. Not every function needs a test.
+- The project's `CLAUDE.md` sets the testing regime - what gets tested, which commands run and when.
+  Follow it.
+- Where it sets none, test only logic where a bug would be costly or hard to spot: branching, parsing,
+  calculations, security checks. No tests for configuration, documentation, plumbing or thin wrappers,
+  and no throwaway check scripts - a check worth keeping is a real test.
+- Use `pytest`. Do not write tests that trivially pass without asserting meaningful behaviour.
