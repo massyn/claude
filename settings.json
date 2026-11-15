@@ -155,7 +155,20 @@
       "Bash(git push origin HEAD:main*)",
       "Bash(git push origin HEAD:master*)",
       "Bash(gh pr merge*)",
-      "Bash(gh pr review*)"
+      "Bash(gh pr review*)",
+      "Bash(terraform *-auto-approve*)",
+      "Read(**/.env)",
+      "Read(**/.env_*)",
+      "Read(**/.env.local)",
+      "Bash(cat *.env*)",
+      "Bash(head *.env*)",
+      "Bash(tail *.env*)",
+      "Bash(less *.env*)",
+      "Bash(more *.env*)",
+      "Bash(grep *.env*)",
+      "Bash(sed *.env*)",
+      "Bash(awk *.env*)",
+      "Bash(source *.env*)"
     ]
   }
 }
