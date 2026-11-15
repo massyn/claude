@@ -56,6 +56,19 @@ git status -sb
   ask - never rebase a pushed branch (rule 4).
 - If any pull cannot fast-forward, stop and tell the user; never merge, rebase or reset to force it.
 
+## Project CLAUDE.md - project-specific development rules
+
+Skills hold the conventions shared by every repo. Anything specific to one project's development lives
+in that repo's `CLAUDE.md` at the root, not in a skill:
+
+- the testing regime - what gets tested, and which commands to run while working and before committing;
+- lint, format, build and run commands that differ from the Makefile defaults;
+- exceptions to the shared conventions, such as a repo that commits part of `data/`.
+
+Read it before starting work. Where it and a skill disagree, the project `CLAUDE.md` wins for that repo.
+When a session settles a project-specific rule, offer to record it there; never move it into a skill.
+`CLAUDE.md` is committed like any other file.
+
 ## Working branch
 
 All work happens on a working branch, created from an up-to-date main. Keep the house clean: never
@@ -95,10 +108,10 @@ Don't create a new branch per change. A new branch is only needed once the curre
 - Check `git branch --show-current` (rule 1) and `git status` first.
 - Check line endings (see Line endings below).
 - Stage files by path (`git add path/to/file ...`). Never `git add -A` or `git add .` without reviewing
-  `git status` - and never stage secrets (`.env`, `.env_dev`, keys, tokens), local databases or generated
-  files (`gunicorn_config.py`, `venv/`, build output).
-- Run the project's checks before committing (Makefile `lint`/`format`/`test`, or `ruff`, `black --check`,
-  `pytest`). Don't commit with failing checks.
+  `git status` - and never stage secrets (`.env`, `.env_dev`, keys, tokens), local databases, generated
+  files (`gunicorn_config.py`, build output) or anything the Repository layout below keeps out of git.
+- Run the project's checks before committing - those its `CLAUDE.md` lists, otherwise the Makefile
+  `lint`/`format`/`test` targets, or `ruff`, `black --check`, `pytest`. Don't commit with failing checks.
 - Commit at logical points. Message: an imperative summary line of 72 characters or fewer
   ("Add Tenable exploit columns"), then a blank line and a short body explaining why, when it isn't obvious.
   British English.
@@ -125,6 +138,53 @@ fixed in the repo itself, not in each machine's `core.autocrlf`.
   Never renormalise with `git reset`, `git checkout` or `git rm --cached` - they discard uncommitted work.
 - **Machine settings** (`core.autocrlf input`, the editor saving LF) belong to the user. If CRLF keeps
   appearing after `.gitattributes` is in place, say so rather than changing them.
+
+## Repository layout - what lives where
+
+Every repo, whatever the language, keeps local and generated material in the same places, so it never
+reaches git by accident:
+
+| Folder | Holds | In git | Rule of thumb |
+|---|---|---|---|
+| `.venv/` | The Python virtual environment | Never | Rebuilt from `requirements.txt` / `pyproject.toml` |
+| `.cache/` | Downloads, AI models, caches, scratch output | Never | Can be deleted at any time without losing work |
+| `data/` | What the tool produces | Ignored by default | Would hurt to lose and cannot cheaply be rebuilt |
+| `etc/` | Configuration that is not secret | Always committed | Changing it changes behaviour |
+| `.env` | Secrets and per-machine values | Never | Already the convention |
+
+- **`.gitignore`:** when creating any of these folders, or when the repo's `.gitignore` lacks them, make
+  sure it contains:
+
+  ```
+  .venv/
+  .cache/
+  data/
+  .env
+  ```
+
+  Commit it on its own ("Ignore local layout folders") and tell the user in the summary - no need to ask
+  first. Never add `etc/`.
+- **`data/` is the user's call.** It is ignored by default; if the user wants some or all of it in git,
+  they change `.gitignore` themselves or ask for it, and the exception goes in the project `CLAUDE.md`. Being ignored means git no longer backs it up - say
+  so when first creating it. Data that belongs in git goes where its purpose is clear instead:
+  test fixtures in `tests/fixtures/`, reference or seed data in `etc/`.
+- **`etc/` never holds secrets.** A config file that needs one names an environment variable, and the
+  value lives in `.env`.
+- **Paths are configuration.** Code reads these locations from the environment, with the folders above
+  as defaults (e.g. `MODEL_DIR` defaulting to `.cache/models`), never as hardcoded paths.
+- **Repos that don't follow it: report, don't move.** Adding missing `.gitignore` entries is the only
+  automatic fix. When working in a repo, if you notice layout drift, list it as a finding and offer to
+  align it; move, rename or untrack nothing without the user's yes for that item. Drift means:
+  - folders doing the job of a layout folder under another name (`venv/`, `env/`, `models/`,
+    `downloads/`, `output/`, `config/`), with the code, scripts and docs that refer to them;
+  - files tracked in git under `.venv/`, `.cache/`, `data/` or `.env`. Explain that adding a
+    `.gitignore` entry doesn't stop git tracking them: `git rm --cached` removes them from the repo on
+    the next push and leaves them on disk, while history still holds them;
+  - secrets in `etc/` or any other committed config. Say that rotating them is the user's job.
+
+  `/massyn:housekeeping` runs the same check deliberately (see `references/housekeeping.md`).
+- This is the local layout. On a flask-deploy server the app's environment stays at `venv/` and
+  stateful data at `/data/<slug>/`, as `flask/references/deploy.md` describes.
 
 ## Pushing
 
@@ -176,7 +236,8 @@ setup and the job template are in `references/ci-notify.md`; read it before touc
 ## Housekeeping
 
 When the user asks for housekeeping (or runs `/massyn:housekeeping`), sync the current repo, then give
-a read-only report on CI on main, open PRs, GitHub security alerts and open issues, offering "Shall I
+a read-only report on CI on main, open PRs, GitHub security alerts, open issues and repository layout
+drift, offering "Shall I
 fix it?" where a fix applies. The steps and report format are in `references/housekeeping.md`; read it
 before starting.
 

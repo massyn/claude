@@ -8,7 +8,7 @@
     {
       "name": "massyn",
       "source": "./plugins/massyn",
-      "description": "Git workflow, Python, Flask and Flask PWA development conventions, Semgrep SAST triage, and the /coffee session handoff"
+      "description": "Git workflow, Python, Flask and Flask PWA development conventions, mddoco documents, CVE remediation documents, Semgrep SAST triage, and the /coffee session handoff"
     }
   ]
 }
