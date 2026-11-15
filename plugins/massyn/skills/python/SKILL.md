@@ -15,6 +15,9 @@ description: Python coding conventions - Python 3.10+, type hints, stdlib-first 
 
 - Add `from dotenv import load_dotenv` to all solutions, and call `load_dotenv()` in the entry point
   before any configuration is read.
+- **NEVER read `.env` - ever.** No Read tool, `cat`, `grep`, `head`, `python`, or any other way of
+  opening or printing it. Checking that it exists (`[ -f .env ]`) is the limit. Use `.env.example`
+  to see which keys are expected, and ask the user to check a value if debugging needs one.
 - Create the virtual environment in `.venv/` (`python -m venv .venv`).
 - Read file locations from the environment, with defaults from the repository layout in the devops
   skill: downloads, models and caches under `.cache/`, produced output under `data/`, committed
