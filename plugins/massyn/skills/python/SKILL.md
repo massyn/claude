@@ -1,6 +1,6 @@
 ---
 name: python
-description: Python coding conventions - Python 3.10+, type hints, stdlib-first dependencies, python-dotenv configuration, a run.sh that builds the .venv and starts the app, logging in except blocks, black/ruff formatting, Makefile targets, and pytest testing. Use whenever writing, modifying, reviewing or testing Python code (.py files, requirements.txt, pyproject.toml, Makefile targets for a Python project), including Flask apps, scripts and CLIs - even if the user doesn't say "Python" explicitly.
+description: Python coding conventions - src/<name>/ package layout with a single __main__.py entry point, Python 3.10+, type hints, stdlib-first dependencies, python-dotenv configuration, a run.sh that builds the .venv and starts the app, logging in except blocks, black/ruff formatting, Makefile targets, and pytest testing. Use whenever writing, modifying, reviewing or testing Python code (.py files, requirements.txt, pyproject.toml, Makefile targets for a Python project), including Flask apps, scripts and CLIs - even if the user doesn't say "Python" explicitly.
 ---
 
 # Python development
@@ -10,6 +10,44 @@ description: Python coding conventions - Python 3.10+, type hints, stdlib-first 
 - Target Python 3.10+ unless the project specifies otherwise.
 - Prefer stdlib over third-party libraries unless there is a clear, justified reason.
 - Use type hints on all function signatures.
+
+## Project layout
+
+Someone cloning the repo must see at a glance where the code lives and how to start it. Code lives in
+a package under `src/`, never as loose modules at the root. This applies to scripts, CLIs and
+libraries; Flask apps follow the `flask` skill (`run.py` and an `app/` package) instead.
+
+```
+<project>/
+  run.sh                 # builds .venv, installs, starts the package
+  pyproject.toml         # metadata, dependencies, [project.scripts] entry
+  Makefile  README.md  LICENSE  .env.example  .gitignore
+  src/<name>/
+    __init__.py
+    __main__.py          # entry point: wiring only, so `python -m <name>` works
+    cli.py               # argument parsing, calls into the modules
+    <concern>.py         # one module per functional concern
+    <resource>/          # package data (themes, templates) lives beside the code that uses it
+  tests/
+  etc/  data/  .cache/   # as the devops skill's repository layout describes
+```
+
+- **Root holds only** `run.sh`, `pyproject.toml` (or `requirements.txt` for a non-installable
+  script), `Makefile`, `README.md`, `LICENSE`, `.env.example`, `.gitignore`, and the folders `src/`,
+  `tests/`, `etc/` and `data/`. A `.py` file at the root is a layout error.
+- **One entry point.** `src/<name>/__main__.py` is the way in and `run.sh` launches it with
+  `-m <name>`. Declare a console script under `[project.scripts]` in `pyproject.toml` too when the
+  tool is installed (`<name> = "<name>.cli:main"`). `cli.py` is the argparse module inside the
+  package, not the entry point.
+- **Imports go through the package** (`from <name>.deck import load_deck`), never bare
+  (`from deck import ...`) and never by putting the root on `sys.path`. Install the project with
+  `pip install -q -e .` so `src/` is importable, and the same imports work in tests - no
+  `pythonpath` setting in `pytest.ini`.
+- Package name: short, lowercase, valid identifier, matching the repository name.
+- Paths to bundled resources are resolved from the package (`Path(__file__).parent / "themes"`);
+  paths to user data and configuration come from the environment (see Configuration).
+- **Existing projects that don't follow this: report, don't move.** List the drift as a finding and
+  restructure only when the user says so.
 
 ## Configuration
 
@@ -54,12 +92,12 @@ description: Python coding conventions - Python 3.10+, type hints, stdlib-first 
   "$VENV_PYTHON" -m pip install -q --upgrade pip
   "$VENV_PYTHON" -m pip install -q -r requirements.txt
 
-  exec "$VENV_PYTHON" app.py "$@"
+  exec "$VENV_PYTHON" -m app "$@"   # replace "app" with the package name
   ```
 
-- Change only the last line to suit the project: the entry point (`app.py`, `run.py`, `main.py`), or
-  `-m package` for an installable package (install it with `pip install -q -e .` in place of the
-  `requirements.txt` line). Keep the rest as is.
+- Change only the last line to suit the project. A package under `src/` (the default, see Project
+  layout) installs with `pip install -q -e .` in place of the `requirements.txt` line and ends with
+  `exec "$VENV_PYTHON" -m <name> "$@"`. A Flask app uses `run.py`. Keep the rest as is.
 - Call the venv's interpreter directly (`$VENV_PYTHON -m pip`, `$VENV_PYTHON app.py`) - never rely on
   `activate` or on whichever `python`/`pip` is first on `PATH`.
 - Commit it executable with LF line endings (`git update-index --chmod=+x run.sh` on Windows).
