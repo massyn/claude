@@ -80,10 +80,17 @@ git pull --ff-only       # make sure main matches origin - the only command ever
 git switch -c <branch>   # leave main immediately
 ```
 
-Be pragmatic about branches. If a working branch already exists and its PR is not merged yet, keep
-using it - further changes, even unrelated small ones, can go on the same branch and into the same PR.
-Don't create a new branch per change. A new branch is only needed once the current one has been merged
-(or the user asks for a separate one).
+**One branch at a time, and everything goes on it.** This is a solo developer's repo, so there is no
+need for a branch or PR per concern. Bundle all pending work into the current working branch and its
+single PR, related or not:
+
+- Never split changes across branches, and never leave some of the working tree out of a commit or PR
+  because it looks unrelated. If it is modified or untracked in the repo, it is part of the bundle.
+  Review `git status` and stage by path, but stage the lot; ask only about secrets and generated files.
+- Never create a new branch while the current one is unmerged. If work started on main, `git switch -c`
+  off it and carry on from there.
+- A new branch is only created once the current one has been merged, or when the user explicitly asks
+  for a separate one. Don't offer or suggest splitting.
 
 ### Naming
 

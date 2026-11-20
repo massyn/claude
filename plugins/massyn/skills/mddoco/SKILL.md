@@ -1,6 +1,6 @@
 ---
 name: mddoco
-description: Write documents for mddoco, the CLI that turns a folder of Markdown files into one HTML or PDF document - file layout and ordering, the Markdown dialect it supports, Jinja2 .md.j2 templates fed by JSON and CSV data files, native graph charts, Mermaid diagrams, themes (including the site-* website themes), table of contents and the render command. Use whenever creating, editing or rendering an mddoco document, report, handbook or site, writing .md.j2 templates or graph blocks for one, or when the user mentions mddoco - even if they just say "build the report" or "render the docs" in a folder of numbered Markdown files.
+description: Write documents for mddoco, the CLI that turns a folder of Markdown files into one HTML or PDF document - file layout and ordering, the Markdown dialect it supports, Jinja2 .md.j2 templates fed by JSON and CSV data files, native graph charts, Mermaid and D2 diagrams, themes (including the site-* website themes), table of contents and the render command. Use whenever creating, editing or rendering an mddoco document, report, handbook or site, writing .md.j2 templates or graph blocks for one, or when the user mentions mddoco - even if they just say "build the report" or "render the docs" in a folder of numbered Markdown files.
 ---
 
 # Writing mddoco documents
@@ -45,7 +45,7 @@ when `--toc` is on). Write to that dialect, not to GitHub Flavoured Markdown:
 | Fenced code blocks with a language (highlighted by highlight.js) | `~~strikethrough~~` |
 | `{#id .class}` attributes after headings, links, images | Footnotes `[^1]`, admonitions `!!!`, definition lists |
 | Inline and block raw HTML | Auto-linked bare URLs - write `<https://...>` or `[text](url)` |
-| ` ```mermaid ` and ` ```graph ` fenced blocks | GitHub alerts `> [!NOTE]` |
+| ` ```mermaid `, ` ```d2 ` and ` ```graph ` fenced blocks | GitHub alerts `> [!NOTE]` |
 
 Python-Markdown is stricter than GitHub about whitespace:
 
@@ -123,7 +123,23 @@ per-bar colours) is in [references/graph.md](references/graph.md).
 **Diagrams:** a ` ```mermaid ` fenced block is drawn by Mermaid.js in the browser (loaded from a CDN only
 when a diagram is present). Standard Mermaid syntax; flowcharts, sequence, Gantt and so on all work.
 
-Choose a `graph` for numbers, `mermaid` for structure and flow, a table when exact values matter.
+A ` ```d2 ` fenced block is compiled at build time by the separate `d2` command-line tool and embedded as
+inline SVG, so it needs no JavaScript and prints cleanly to PDF. `d2` is not installed by `pip`; it is only
+required when a document contains a `d2` block, and a missing tool or a block that fails to compile fails
+the render. Install options, behaviour and when to prefer it over Mermaid are in
+[references/d2.md](references/d2.md):
+
+````markdown
+```d2
+direction: right
+client -> server: request
+server -> db: query
+```
+````
+
+Choose a `graph` for numbers, `d2` or `mermaid` for structure and flow (`d2` when layout quality or PDF
+output matters and the `d2` CLI is available, `mermaid` when no extra tool should be needed), a table when
+exact values matter.
 
 ## 5. Render
 
@@ -166,7 +182,8 @@ mddoco <folder> --title "..." --toc --output <scratch-dir>
 ```
 
 - A non-zero exit means a Jinja error, bad JSON in a data file or graph, a stem clash, or a theme/format
-  mismatch - the message says which. Fix and re-run.
+  mismatch, a `d2` block with the `d2` CLI missing or failing to compile - the message says which. Fix and
+  re-run.
 - Then grep the HTML for signs of a dialect slip: literal `|---` or `| ` at line starts (a broken table),
   `{{` or `{%` (template text that leaked), `[ ]` or `~~` (unsupported GFM).
 - Keep generated HTML/PDF out of version control unless the user wants it committed.
