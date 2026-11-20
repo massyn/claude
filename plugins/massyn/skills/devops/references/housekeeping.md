@@ -2,7 +2,8 @@
 
 A health check of the **current repo only**: bring it up to date, then report on CI, open pull
 requests, security alerts, issues and repository layout. The check itself is read-only. Nothing is written to GitHub and
-nothing is changed locally beyond the sync, until the user says yes to a specific fix.
+nothing is changed locally beyond the sync, until the user says yes to a specific fix. The one exception
+is deleting a leftover `SLACK_WEBHOOK` secret (step 2).
 
 Run the steps in order, then give one report (see Report).
 
@@ -25,6 +26,33 @@ gh run list --branch main --limit 5 --json workflowName,status,conclusion,create
 ```
 
 Report the latest run of each workflow. A failed run on main goes at the top of the report.
+
+Then check that the workflows are up to date. For every `uses: owner/repo@ref` in `.github/workflows/`
+and any version pinned in a step (`wrangler`, `node-version`, `python-version`, `tool@x`):
+
+```bash
+grep -rhoE 'uses: [^ ]+' .github/workflows | sort -u
+gh api repos/<owner>/<repo>/releases/latest -q .tag_name     # latest release of each action
+```
+
+List each outdated action or tool with its current and latest version, and the workflow file it is in.
+Note a major-version jump, since its inputs may have changed. Report only; end with **"Shall I fix
+it?"**.
+
+### Retire the Slack webhook secret
+
+Slack build notifications are no longer used. If the repo still has the `SLACK_WEBHOOK` Actions secret,
+delete it - this is the one thing housekeeping changes without asking:
+
+```bash
+if gh secret list --json name -q '.[].name' | grep -qx SLACK_WEBHOOK; then
+  gh secret delete SLACK_WEBHOOK && echo "SLACK_WEBHOOK deleted"
+fi
+```
+
+Say in the report whether it was deleted or was not present. If a workflow still references
+`SLACK_WEBHOOK` (`grep -rn SLACK_WEBHOOK .github/workflows`), report the file as a finding and offer to
+remove the `notify` job ("Shall I fix it?"); a missing secret only produces a warning on the run.
 
 ## 3. Open pull requests: report only
 
@@ -100,7 +128,7 @@ End each item with **"Shall I fix it?"**. Don't change anything locally until th
 
 One report in chat, most urgent first:
 
-1. Red CI on main
+1. Red CI on main, then outdated actions and tools in workflows
 2. Secret alerts, and secrets found in committed config
 3. Critical and high security alerts
 4. Other security alerts

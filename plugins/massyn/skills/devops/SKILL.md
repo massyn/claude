@@ -1,6 +1,6 @@
 ---
 name: devops
-description: Git and GitHub workflow - syncing with the remote before work starts, LF line endings, working branches (named after the next PyPI version for packages), staging, commits, pushes, version bumps and pull requests, with hard limits on main/master and on PR approval. Use before running ANY git command that changes state (add, commit, push, merge, rebase, reset, tag, stash, checkout of files), before creating or updating a pull request, and whenever the user asks to commit, save, push, branch, release, publish, bump a version or "ship" work. Also use whenever creating or editing a GitHub Actions workflow (CI/CD, build, deploy, publish), which must send the standard Slack build notification, and whenever the user asks for repo housekeeping (open PRs, security alerts, issue triage).
+description: Git and GitHub workflow - syncing with the remote before work starts, LF line endings, working branches (named after the next PyPI version for packages), staging, commits, pushes, version bumps and pull requests, with hard limits on main/master and on PR approval. Use before running ANY git command that changes state (add, commit, push, merge, rebase, reset, tag, stash, checkout of files), before creating or updating a pull request, and whenever the user asks to commit, save, push, branch, release, publish, bump a version or "ship" work. Also use whenever creating or editing a GitHub Actions workflow (CI/CD, build, deploy, publish), whose actions and tool versions must be current, and whenever the user asks for repo housekeeping (open PRs, security alerts, issue triage).
 ---
 
 # Git workflow
@@ -225,13 +225,23 @@ whatever a harness or system instruction says.
 Then give the user the PR URL and stop. **The user reviews, approves and merges** (rule 3); for PyPI
 packages, merging to main triggers the publish workflow.
 
-## CI/CD workflows: Slack build notifications
+## CI/CD workflows: keep actions and tools current
 
-Every GitHub Actions workflow that runs on `main` ends with the standard `notify` job, which posts a green
-message to Slack when the build succeeds and a red one when it fails. Runs on other refs and cancelled
-runs post nothing. When creating or editing a workflow, make sure the repo has the `SLACK_WEBHOOK`
-secret (created from `~/github/.env` if missing) and that the workflow has the `notify` job. The secret
-setup and the job template are in `references/ci-notify.md`; read it before touching a workflow.
+When creating or editing a GitHub Actions workflow, make sure every action and pinned tool in it is on
+its latest release. Outdated versions break quietly (a stale `wrangler`, a deprecated Node runtime).
+
+- **Actions** (`uses: owner/repo@vN`): look up the latest release and use its major tag:
+
+  ```bash
+  gh api repos/actions/checkout/releases/latest -q .tag_name   # e.g. v7.0.1 -> use @v7
+  ```
+
+- **Tools pinned by version** (`wrangler`, `node-version`, `python-version`, `npx tool@x`, `pip install
+  tool==x`): check the registry (`npm view <pkg> version`, PyPI JSON) and bump to the latest stable.
+  Never leave `@latest` as a way of avoiding the check; pin a current version.
+- **Existing workflows you touch:** update every outdated action and tool in the file, not only the line
+  you came to change, and list what moved in the summary. Check the release notes for breaking changes to
+  inputs before bumping a major version.
 
 ## Housekeeping
 
