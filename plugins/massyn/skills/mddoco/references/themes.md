@@ -52,4 +52,4 @@ A screen-only theme opts out of PDF by setting, at the top level of the template
 `--format pdf` then fails with an error instead of producing a PDF.
 
 Rendered fragments use these hooks for styling: Mermaid diagrams are `<div class="mermaid">`, charts are
-`<div class="graph"><svg ...></div>`, and code blocks are `<pre><code class="language-xxx">`.
+`<div class="graph"><svg ...></div>`, D2 diagrams are `<div class="d2"><svg ...></div>`, and code blocks are `<pre><code class="language-xxx">`.
