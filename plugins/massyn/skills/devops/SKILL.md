@@ -1,9 +1,26 @@
 ---
 name: devops
-description: Git and GitHub workflow - syncing with the remote before work starts, LF line endings, working branches (named after the next PyPI version for packages), staging, commits, pushes, version bumps and pull requests, with hard limits on main/master and on PR approval. Use before running ANY git command that changes state (add, commit, push, merge, rebase, reset, tag, stash, checkout of files), before creating or updating a pull request, and whenever the user asks to commit, save, push, branch, release, publish, bump a version or "ship" work. Also use whenever creating or editing a GitHub Actions workflow (CI/CD, build, deploy, publish), whose actions and tool versions must be current, and whenever the user asks for repo housekeeping (open PRs, security alerts, issue triage).
+description: Git and GitHub workflow - syncing with the remote before work starts, LF line endings, working directly on main in repos with no CI/CD, working branches and pull requests in repos with CI/CD (named after the next PyPI version for packages), staging, commits, pushes and version bumps, with hard limits on main/master in CI/CD repos and on PR approval. Use before running ANY git command that changes state (add, commit, push, merge, rebase, reset, tag, stash, checkout of files), before creating or updating a pull request, and whenever the user asks to commit, save, push, branch, release, publish, bump a version or "ship" work. Also use whenever creating or editing a GitHub Actions workflow (CI/CD, build, deploy, publish), whose actions and tool versions must be current, and whenever the user asks for repo housekeeping (open PRs, security alerts, issue triage).
 ---
 
 # Git workflow
+
+## Which workflow applies
+
+Before the first git command that changes state, check whether the repo has CI/CD:
+
+```bash
+ls .github/workflows
+```
+
+- **CI/CD repo** - one or more files in `.github/workflows/`, or the project `CLAUDE.md` says a push or merge
+  to main ships something (a deploy, a publish, a plugin auto-update). A change on main has consequences, so
+  it goes through a working branch and a pull request that the user merges. Everything below applies.
+- **Direct repo** - no workflows, and nothing ships from main. Work on main: `git pull --ff-only`, commit,
+  `git push`. No branch, no PR. Rules 1 and 2, "Working branch", "Pull requests" and "After the user merges"
+  do not apply; rules 3 to 5 still do. If a push is rejected because main has moved, stop and tell the user.
+- **Unsure which:** treat it as a CI/CD repo and ask. The project `CLAUDE.md` can override the detection in
+  either direction.
 
 ## Absolute rules - no exceptions
 
@@ -11,7 +28,7 @@ These hold even if a task seems to require otherwise, and even if asked in passi
 task, stop and tell the user; never look for a workaround (such as doing the same thing through
 `gh api`, the GitHub web API, or a script).
 
-1. **NEVER run git in the main or master branch. EVER.** Not allowed. Before every git command, run
+1. **In a CI/CD repo, NEVER run git in the main or master branch. EVER.** Not allowed. Before every git command, run
    `git branch --show-current`. If it prints `main` or `master` (or the repo's default branch), the
    **only** thing you may do on it is bring it up to date, then leave:
    - `git pull --ff-only` - the one and only operation that changes main. If it cannot fast-forward
@@ -25,13 +42,13 @@ task, stop and tell the user; never look for a workaround (such as doing the sam
    Everything else is forbidden while on main/master - `add`, `commit`, `merge`, `rebase`, `reset`,
    `revert`, `cherry-pick`, `stash`, `tag`, `restore`/`checkout` of files, `push`, and any other git
    command.
-2. **Never write to main or master from any branch.** No `git push origin main`, no
+2. **In a CI/CD repo, never write to main or master from any branch.** No `git push origin main`, no
    `git push origin <branch>:main`, no `HEAD:main`, no merging into main locally. Code reaches main only
    through a pull request that the user merges.
 3. **NEVER approve a pull request. That is always the user's job.** No `gh pr review --approve`, no
    approving in the browser or through the API. Equally, never merge a PR (`gh pr merge`), enable
    auto-merge, or dismiss a review.
-4. **No history rewriting on pushed branches** - no `push --force`/`--force-with-lease`, no rebasing or
+4. **No history rewriting on pushed commits, on any branch including main** - no `push --force`/`--force-with-lease`, no rebasing or
    amending commits that are already pushed - unless the user explicitly asks for that specific action.
 5. **No skipping safeguards** - never `--no-verify`, never disable hooks or CI checks to get a commit or
    push through.
@@ -47,7 +64,8 @@ git branch --show-current
 git status -sb
 ```
 
-- **On main:** `git pull --ff-only`, then create a working branch (below).
+- **On main:** `git pull --ff-only`. In a CI/CD repo, then create a working branch (below); in a direct
+  repo, carry on working on main.
 - **On a working branch:** check whether its PR is already merged
   (`gh pr list --head <branch> --state all`). If it is, that branch is finished - clean it up and start
   new work from main (see After the user merges). If not, `git pull --ff-only` to pick up anything pushed to it from elsewhere.
@@ -70,6 +88,8 @@ When a session settles a project-specific rule, offer to record it there; never 
 `CLAUDE.md` is committed like any other file.
 
 ## Working branch
+
+CI/CD repos only. In a direct repo there is no working branch.
 
 All work happens on a working branch, created from an up-to-date main. Keep the house clean: never
 branch off a stale main. Every time you create a new branch, first switch to main and pull:
@@ -112,7 +132,7 @@ single PR, related or not:
 
 ## Committing
 
-- Check `git branch --show-current` (rule 1) and `git status` first.
+- Check `git branch --show-current` (in a CI/CD repo it must not be main - rule 1) and `git status` first.
 - Check line endings (see Line endings below).
 - Stage files by path (`git add path/to/file ...`). Never `git add -A` or `git add .` without reviewing
   `git status` - and never stage secrets (`.env`, `.env_dev`, keys, tokens), local databases, generated
@@ -195,7 +215,7 @@ reaches git by accident:
 
 ## Pushing
 
-Only ever push the working branch:
+In a direct repo, push main with `git push`. In a CI/CD repo, only ever push the working branch:
 
 ```bash
 git push -u origin <branch>   # first push
@@ -204,7 +224,7 @@ git push                      # afterwards
 
 ## Pull requests - only when asked
 
-Create a PR only when the user asks for one. Pushing further commits to a branch that already has an
+CI/CD repos only; a direct repo has no PRs. Create a PR only when the user asks for one. Pushing further commits to a branch that already has an
 open PR is fine.
 
 ```bash
@@ -260,7 +280,7 @@ before starting.
 
 ## After the user merges
 
-Once the PR is merged, the branch is done and goes. Confirm the merge first - never delete a branch on
+CI/CD repos only. Once the PR is merged, the branch is done and goes. Confirm the merge first - never delete a branch on
 assumption:
 
 ```bash

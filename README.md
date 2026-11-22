@@ -13,7 +13,7 @@ Configuration for Claude Code: global instructions, settings, and a plugin marke
 
 | Component | Invoke as | Purpose |
 |-----------|-----------|---------|
-| `skills/devops` | `massyn:devops` | Git workflow: working branches (PyPI version names), commits, PRs - never on main, never approves PRs |
+| `skills/devops` | `massyn:devops` | Git workflow: straight to main in repos with no CI/CD; working branches (PyPI version names) and PRs, never on main, in repos with CI/CD; never approves PRs |
 | `skills/python` | `massyn:python` | Python conventions (typing, dotenv, logging, black/ruff, pytest) |
 | `skills/flask` | `massyn:flask` | Flask app conventions, golden template, flask-deploy contract |
 | `skills/flask-pwa` | `massyn:flask-pwa` | Installable phone-first Flask apps: manifest, icons, service worker, bottom tab bar |
