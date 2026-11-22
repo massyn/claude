@@ -31,8 +31,9 @@ If discovery returns `http://` behind Cloudflare/Nginx, set `FORCE_HTTPS=true`.
    The `client_id` is later bound to the auth code and checked again at the token endpoint.
 2. **Authorise** - `GET /oauth/authorize?response_type=code&client_id&redirect_uri&state&code_challenge&code_challenge_method=S256`.
    The parameters are parked in `session['mcp_oauth']`.
-   - Not signed in → redirect to `auth.google`. The Google callback sees `mcp_oauth` in the session
-     and redirects back to `/oauth/authorize`, which now renders the consent page from the session.
+   - Not signed in → redirect to `auth.login`. Whichever method they use, it ends in
+     `after_login_url()`, which sees `mcp_oauth` in the session and redirects back to
+     `/oauth/authorize`, which now renders the consent page from the session.
    - Signed in → consent page straight away.
 3. **Consent** - `templates/mcp/authorize.html` shows the `client_id` and the host the code will be
    sent to. `POST /oauth/authorize` with `action=allow` creates a 10-minute, single-use auth code

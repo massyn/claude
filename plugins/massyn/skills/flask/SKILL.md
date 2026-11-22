@@ -1,6 +1,6 @@
 ---
 name: flask
-description: Conventions, golden template and deployment contract for Flask web apps - app factory and blueprints, Jinja2 + Bootstrap 5 templates, SQL held in Jinja .sql templates for SQLite and Postgres, Google OAuth, security headers, and the flask-deploy (Gunicorn + Nginx + systemd) contract. Use whenever creating, modifying, reviewing or deploying a Flask app - adding routes, blueprints, templates, SQL queries, auth, or touching run.py, config.py, requirements.txt, .env files or the GitHub Actions deploy workflow in a Flask project - even if the user doesn't say "Flask" explicitly.
+description: Conventions, golden template and deployment contract for Flask web apps - app factory and blueprints, Jinja2 + Bootstrap 5 templates, SQL held in Jinja .sql templates for SQLite and Postgres, emailed-code sign-in (Mailgun) with passkeys, optional Google OAuth and a user admin screen, security headers, and the flask-deploy (Gunicorn + Nginx + systemd) contract. Use whenever creating, modifying, reviewing or deploying a Flask app - adding routes, blueprints, templates, SQL queries, auth, or touching run.py, config.py, requirements.txt, .env files or the GitHub Actions deploy workflow in a Flask project - even if the user doesn't say "Flask" explicitly.
 ---
 
 # Flask development
@@ -17,6 +17,10 @@ both. For an installable, phone-first app, the `flask-pwa` skill adds the PWA la
   `db.py` or `config.py` from scratch.
 - **Existing app:** follow the rules below; consult the reference files for detail before adding a
   feature that one of them covers.
+- **Existing app adopting the emailed-code auth:** its `users` table must be migrated (new columns, unique
+  lower-case email, possibly a full table rebuild on SQLite). Read "Moving an existing app to emailed
+  codes" in `references/security.md`, inspect the app's own schema, and get the user's yes before touching
+  a live database.
 
 ## Hard rules
 
@@ -64,8 +68,13 @@ both. For an installable, phone-first app, the `flask-pwa` skill adds the PWA la
 - Never trust `request.remote_addr` or `X-Forwarded-For` for the client IP - use `get_remote_ip()`.
 - Never build OAuth redirect URIs from the raw `Host` header - use `get_oauth_redirect_uri()` with the
   `APP_HOSTNAME` allow-list.
+- Sign-in is an emailed one-time code by default (Mailgun), never a clickable link, with passkeys beside
+  it. Google is optional, not the way: its button shows only when `GOOGLE_CLIENT_ID` is set. Email,
+  lower-cased, is the identity every method resolves to. Never hand-roll the code or WebAuthn checks.
 - Passkeys come with the template (`app/auth/passkeys.py`) - never hand-roll WebAuthn verification.
-  Every sign-in method finishes with `establish_session(user)` and redirects to `after_login_url()`.
+  Every sign-in method finishes with `establish_session(user, method)` and redirects to `after_login_url()`.
+- `ADMIN_USER` is the breakglass admin: always admin, no `users` row. `TEST_USER` is a dev-only email that
+  skips the code and never goes in a deploy workflow.
 - CSRF protection (`flask-wtf`) on every app; every POST form carries `csrf_token`.
 - Security headers via Flask-Talisman, with every CDN origin whitelisted in the CSP.
 - Never delete on GET - destructive actions POST to a dedicated route after a Bootstrap modal confirm.
@@ -77,7 +86,7 @@ Read the relevant file before working in that area:
 | File | Read when |
 |------|-----------|
 | `references/deploy.md` | Touching `run.py`, `.env*`, `requirements.txt`, `.gitignore`, the GitHub Actions workflow, or deploying a new site |
-| `references/security.md` | Auth, sessions, OAuth, passkeys, client IP, CSRF, Talisman/CSP, rate limiting |
+| `references/security.md` | Auth (emailed codes, roles, admin, `ADMIN_USER`/`TEST_USER`), sessions, Google OAuth, passkeys, client IP, CSRF, Talisman/CSP, rate limiting |
 | `references/ui.md` | Templates, navbar, theming/CSS, list views, pagination, sorting, footer, analytics tag |
 | `references/sql.md` | Adding queries or schema, or working with `db.py` |
 
@@ -90,7 +99,9 @@ Read the relevant file before working in that area:
 | `app/__init__.py` | App factory - CSRF, rate limiter, OAuth, blueprints, error handlers, context processor |
 | `app/db.py` | Connection handling (SQLite / Postgres), SQL template rendering, `execute_batch`, `SCHEMA_FILES` |
 | `app/main.py` | Public routes blueprint |
-| `app/auth/` | Google OAuth blueprint, `find_or_create_user`, `get_remote_ip`, `get_oauth_redirect_uri`, `login_required` |
+| `app/auth/` | Auth blueprint: emailed codes (`otp.py`, `otp_routes.py`, `mailgun.py`), optional Google, `sign_in_user`, `get_remote_ip`, `get_oauth_redirect_uri`, `login_required`, `admin_required` |
+| `app/admin/` | User admin screens: list, add, edit (role, disable, delete), last login |
+| `tests/conftest.py`, `tests/test_auth.py`, `tests/test_passkeys.py` | pytest checks for codes, `ADMIN_USER`, `TEST_USER`, disabled users, the admin screens and the passkey ceremonies (software authenticator) |
 | `app/auth/passkeys.py`, `passkey_routes.py` | Passkey (WebAuthn) sign-up, sign-in and management |
 | `templates/` | `base.html`, page templates (incl. `passkey_signup.html`, `passkeys.html`), `sql/` query templates |
 | `static/js/csrf.js` | `postJSON()` - page scripts POST JSON with the CSRF token from the `csrf-token` meta tag |

@@ -11,9 +11,9 @@ never put a semicolon inside a SQL comment.
 Every template receives `dialect` (`"sqlite"` or `"postgres"`) and emits the right placeholders:
 
 ```sql
-SELECT id, google_id, name, email, created_on
+SELECT id, name, email, role, created_on
 FROM users
-WHERE google_id = {% if dialect == 'sqlite' %}?{% else %}%s{% endif %}
+WHERE email = {% if dialect == 'sqlite' %}?{% else %}%s{% endif %}
 ```
 
 Use dialect blocks for anything that differs between engines:
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS users (
     {% else %}
     id SERIAL PRIMARY KEY,
     {% endif %}
-    google_id TEXT UNIQUE,
+    email TEXT UNIQUE,
     created_on {% if dialect == 'sqlite' %}DATETIME{% else %}TIMESTAMP{% endif %} DEFAULT CURRENT_TIMESTAMP
 )
 ```
@@ -40,14 +40,14 @@ timestamp types.
 
 | Function | Use |
 |----------|-----|
-| `query(template, params)` | Run a SELECT; returns `list[dict]` |
+| `query(template, params, **context)` | Run a SELECT; returns `list[dict]`. `context` feeds the template (whitelisted identifiers), never values |
 | `execute(template, params)` | Run a write and commit |
 | `execute_batch([(template, params), ...])` | Run several writes in one transaction - all apply or none do |
 | `render_sql(template, dialect, **kwargs)` | Render a template directly (rarely needed) |
 
 ```python
-rows = query('user_by_google_id.sql', (google_id,))
-execute('user_insert.sql', (google_id, name, email, new_passkey_handle()))
+rows = query('user_by_email.sql', (email,))
+execute('user_add.sql', (name, email, role, new_passkey_handle()))
 ```
 
 Values are always passed as `params` - never interpolated into the template. Template variables are for
@@ -66,5 +66,5 @@ LIMIT {% if dialect == 'sqlite' %}? OFFSET ?{% else %}%s OFFSET %s{% endif %}
 ```
 
 The route (or service) validates `sort` against an explicit allow-list and `direction` against
-`{'asc', 'desc'}` before rendering. Add a `db.py` function that forwards kwargs to `render_sql` when a
-project first needs this - the template's `query()` does not take template kwargs.
+`{'asc', 'desc'}` before rendering, then calls `query('items_list.sql', (per_page, offset), sort=..., direction=...)`.
+`app/admin/users.py` and `user_list.sql` are a working example.

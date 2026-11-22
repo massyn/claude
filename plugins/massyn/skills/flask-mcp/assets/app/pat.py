@@ -9,7 +9,7 @@ from flask import (
     url_for,
 )
 
-from app.auth.decorators import login_required
+from app.auth.decorators import account_required
 from app.db import execute, query
 from app.mcp import base_url
 from app.mcp.tokens import issue_pat
@@ -22,7 +22,7 @@ def _user_id() -> int:
 
 
 @bp.route('/')
-@login_required
+@account_required
 def index():
     user_id = _user_id()
     rows = query('mcp_pat_get.sql', (user_id,))
@@ -37,14 +37,14 @@ def index():
 
 
 @bp.route('/generate', methods=['POST'])
-@login_required
+@account_required
 def generate():
     session['new_pat'] = issue_pat(_user_id())
     return redirect(url_for('pat.index'))
 
 
 @bp.route('/revoke', methods=['POST'])
-@login_required
+@account_required
 def revoke():
     execute('mcp_pat_delete.sql', (_user_id(),))
     flash('Token revoked.', 'success')
@@ -52,7 +52,7 @@ def revoke():
 
 
 @bp.route('/revoke-oauth', methods=['POST'])
-@login_required
+@account_required
 def revoke_oauth():
     access_token = request.form.get('access_token', '').strip()
     if access_token:

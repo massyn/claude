@@ -25,7 +25,7 @@ from webauthn.helpers.structs import (
     UserVerificationRequirement,
 )
 
-from app.auth.service import new_passkey_handle
+from app.auth.service import is_admin_email, new_passkey_handle
 from app.db import execute, execute_batch, query
 
 log = logging.getLogger(__name__)
@@ -165,7 +165,10 @@ def authenticate(credential: dict) -> dict:
         raise PasskeyError("That passkey couldn't be verified. Please try again.") from e
 
     execute('passkey_record_use.sql', (verified.new_sign_count, passkey['id']))
-    return query('user_by_id.sql', (passkey['user_id'],))[0]
+    user = query('user_by_id.sql', (passkey['user_id'],))[0]
+    if user['disabled'] and not is_admin_email(user['email']):
+        raise PasskeyError("That account can't sign in.")
+    return user
 
 
 def list_passkeys(user_id: int) -> list[dict]:
@@ -175,7 +178,8 @@ def list_passkeys(user_id: int) -> list[dict]:
 def delete_passkey(user_id: int, passkey_id: int) -> None:
     """Remove one of the user's passkeys, unless it is their only way to sign in."""
     account = query('user_sign_in_methods.sql', (user_id,))[0]
-    if not account['google_id'] and account['passkeys'] <= 1:
+    # A Google link or an email address is another way in; without either, the passkey is the account.
+    if not account['google_id'] and not account['email'] and account['passkeys'] <= 1:
         raise PasskeyError(
             'This is your only passkey, so removing it would lock you out. Add another first.'
         )

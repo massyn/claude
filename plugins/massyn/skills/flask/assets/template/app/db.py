@@ -36,9 +36,11 @@ def close_db(e=None) -> None:
         db.close()
 
 
-def query(template_name: str, params: tuple = ()) -> list[dict]:
+def query(template_name: str, params: tuple = (), **context) -> list[dict]:
+    """Run a SELECT template. `context` feeds the template itself (e.g. a whitelisted ORDER BY
+    column), never values: those always go in `params`."""
     conn, dialect = get_db()
-    sql = render_sql(template_name, dialect)
+    sql = render_sql(template_name, dialect, **context)
     cur = conn.cursor()
     cur.execute(sql, params)
     return [dict(row) for row in cur.fetchall()]

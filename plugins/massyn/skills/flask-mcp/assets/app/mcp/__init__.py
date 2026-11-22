@@ -6,6 +6,7 @@ from urllib.parse import urlencode, urlparse
 from flask import (
     Blueprint,
     Response,
+    abort,
     current_app,
     jsonify,
     redirect,
@@ -111,7 +112,10 @@ def _render_consent(oauth: dict) -> str:
 
 @bp.route('/oauth/authorize', methods=['GET'])
 def oauth_authorize() -> Response:
-    # Returning from Google sign-in: the request parameters were parked in the session.
+    # Tokens belong to a user row, which the ADMIN_USER breakglass account does not have.
+    if session.get('user') and session['user']['id'] is None:
+        abort(403)
+    # Returning from sign-in: the request parameters were parked in the session.
     if 'user' in session and session.get('mcp_oauth'):
         return _render_consent(session['mcp_oauth'])
 
@@ -130,8 +134,9 @@ def oauth_authorize() -> Response:
         'code_challenge_method': request.args.get('code_challenge_method', 'S256'),
     }
 
+    # However the app signs people in (see the flask skill's auth section), the login page is the way in.
     if 'user' not in session:
-        return redirect(url_for('auth.google'))
+        return redirect(url_for('auth.login'))
     return _render_consent(session['mcp_oauth'])
 
 
@@ -139,6 +144,8 @@ def oauth_authorize() -> Response:
 def oauth_authorize_post() -> Response:
     if 'user' not in session:
         return redirect(url_for('auth.login'))
+    if session['user']['id'] is None:
+        abort(403)
 
     oauth = session.pop('mcp_oauth', None)
     if not oauth:

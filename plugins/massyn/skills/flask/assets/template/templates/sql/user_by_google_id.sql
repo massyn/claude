@@ -1,3 +1,3 @@
-SELECT id, google_id, name, email, created_on
+SELECT id, google_id, name, email, role, disabled, last_login, last_method, created_on
 FROM users
 WHERE google_id = {% if dialect == 'sqlite' %}?{% else %}%s{% endif %}

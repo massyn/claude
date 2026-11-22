@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Add user{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <h1 class="h3 mb-3">Add user</h1>
+        <p class="text-muted">
+            They sign in at the login page with an emailed code, so the email must be one they can read.
+        </p>
+        <form method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label class="form-label" for="email">Email</label>
+            <input type="email" class="form-control mb-3" id="email" name="email" required autofocus
+                   value="{{ form.email }}" autocomplete="off">
+            <label class="form-label" for="name">Name <span class="text-muted">(optional)</span></label>
+            <input type="text" class="form-control mb-3" id="name" name="name" maxlength="{{ name_max_length }}"
+                   value="{{ form.name }}" autocomplete="off">
+            <label class="form-label" for="role">Role</label>
+            <select class="form-select mb-4" id="role" name="role">
+                {% for r in roles %}
+                <option value="{{ r }}" {{ 'selected' if r == form.role }}>{{ r }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">Add user</button>
+            <a class="btn btn-link" href="{{ url_for('admin.user_list') }}">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,7 +1,7 @@
 """MCP server checks: discovery, the OAuth 2.1 + PKCE flow, personal access tokens and JSON-RPC.
 
-Signs in through the TEST_USER bypass, so no Google credentials are needed. Uses a throwaway
-SQLite database.
+Signs in through the flask skill's TEST_USER bypass (the email signs in with no code), so no mail or
+Google credentials are needed. Uses a throwaway SQLite database.
 """
 
 import base64
@@ -14,15 +14,17 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 
 REDIRECT_URI = 'https://claude.ai/api/mcp/auth_callback'
+TEST_EMAIL = 'alice@example.com'
 
 
 @pytest.fixture
 def app(tmp_path):
     os.environ.setdefault('DATABASE_URL', f'sqlite:///{tmp_path / "test.db"}')
-    from app import create_app
+    from app import create_app, limiter
 
     app = create_app()
-    app.config.update(TESTING=True, WTF_CSRF_ENABLED=False, TEST_USER='alice', RATELIMIT_ENABLED=False)
+    app.config.update(TESTING=True, WTF_CSRF_ENABLED=False, TEST_USER=TEST_EMAIL)
+    limiter.enabled = False
     return app
 
 
@@ -48,6 +50,9 @@ def authorise(client, challenge: str, action: str = 'allow') -> dict:
         'code_challenge_method': 'S256',
     }, follow_redirects=True)
     assert res.status_code == 200
+    if b'claude.ai' not in res.data:
+        # Not signed in yet: the request is parked while they sign in, then they land on consent.
+        res = client.post('/auth/login', data={'email': TEST_EMAIL}, follow_redirects=True)
     assert b'claude.ai' in res.data, 'consent page must show where the code is being sent'
 
     res = client.post('/oauth/authorize', data={'action': action})
@@ -169,7 +174,7 @@ def test_token_endpoint_accepts_json(client):
 # --- Personal access tokens ---
 
 def test_personal_access_token(client):
-    client.get('/auth/google', follow_redirects=True)
+    client.post('/auth/login', data={'email': TEST_EMAIL})
     client.post('/tokens/generate')
     with client.session_transaction() as sess:
         token = sess['new_pat']
