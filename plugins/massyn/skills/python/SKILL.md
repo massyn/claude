@@ -51,6 +51,7 @@ libraries; Flask apps follow the `flask` skill (`run.py` and an `app/` package) 
 
 ## Configuration
 
+- Configuration is externalised (environment or config files), never hardcoded in business logic.
 - Add `from dotenv import load_dotenv` to all solutions, and call `load_dotenv()` in the entry point
   before any configuration is read.
 - **NEVER read `.env` - ever.** No Read tool, `cat`, `grep`, `head`, `python`, or any other way of
@@ -106,6 +107,8 @@ libraries; Flask apps follow the `flask` skill (`run.py` and an `app/` package) 
 
 ## Error handling and logging
 
+- Prefer returning errors or raising specific exceptions over silent failures or bare `except:`.
+- Log meaningful events and errors at appropriate levels with `logging`; avoid print debugging.
 - In an `except` block, use `logger.exception(...)` (no `exc`/`%s` interpolation needed) instead of
   `logger.error(..., exc)` - it captures the full traceback automatically, which a formatted error
   message alone discards.
