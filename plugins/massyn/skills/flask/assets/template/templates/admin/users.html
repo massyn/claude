@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Users{% endblock %}
+
+{% macro sort_header(key, label) %}
+{% set is_active = sort == key %}
+{% set next_direction = 'desc' if is_active and direction == 'asc' else 'asc' %}
+<th scope="col">
+    <a class="text-decoration-none text-reset"
+       href="{{ url_for('admin.user_list', sort=key, direction=next_direction, per_page=per_page) }}">
+        {{ label }}{% if is_active %} {{ '▲' if direction == 'asc' else '▼' }}{% endif %}
+    </a>
+</th>
+{% endmacro %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">👥 Users <span class="text-muted fs-6">{{ total }} in all</span></h1>
+    <a class="btn btn-primary" href="{{ url_for('admin.user_new') }}">Add user</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                {{ sort_header('email', 'Email') }}
+                {{ sort_header('name', 'Name') }}
+                {{ sort_header('role', 'Role') }}
+                {{ sort_header('status', 'Status') }}
+                <th scope="col">Sign-in methods</th>
+                {{ sort_header('last_login', 'Last login') }}
+                {{ sort_header('created', 'Created') }}
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr data-href="{{ url_for('admin.user_edit', user_id=u.id) }}" style="cursor: pointer;">
+                <td><a href="{{ url_for('admin.user_edit', user_id=u.id) }}">{{ u.email or '(no email)' }}</a></td>
+                <td>{{ u.name }}</td>
+                <td>{{ u.role }}</td>
+                <td>
+                    {% if u.disabled %}<span class="badge text-bg-secondary">Disabled</span>
+                    {% else %}<span class="badge text-bg-success">Active</span>{% endif %}
+                </td>
+                <td>
+                    {% if u.email %}<span class="badge text-bg-light border">Email code</span>{% endif %}
+                    {% if u.passkeys %}<span class="badge text-bg-light border">Passkeys {{ u.passkeys }}</span>{% endif %}
+                    {% if u.google_id %}<span class="badge text-bg-light border">Google</span>{% endif %}
+                </td>
+                <td>
+                    {% if u.last_login %}{{ u.last_login|string|truncate(16, True, '') }}
+                    <span class="text-muted small">via {{ u.last_method }}</span>
+                    {% else %}<span class="text-muted">Never</span>{% endif %}
+                </td>
+                <td>{{ u.created_on|string|truncate(10, True, '') }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="text-muted">No users yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<nav aria-label="Pages" class="d-flex justify-content-between align-items-center">
+    <span class="text-muted small">Page {{ page }} of {{ pages }}</span>
+    <ul class="pagination mb-0">
+        <li class="page-item {{ 'disabled' if page <= 1 }}">
+            <a class="page-link" href="{{ url_for('admin.user_list', page=page - 1, per_page=per_page, sort=sort, direction=direction) }}">Previous</a>
+        </li>
+        <li class="page-item {{ 'disabled' if page >= pages }}">
+            <a class="page-link" href="{{ url_for('admin.user_list', page=page + 1, per_page=per_page, sort=sort, direction=direction) }}">Next</a>
+        </li>
+    </ul>
+</nav>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/rowlink.js') }}"></script>
+{% endblock %}

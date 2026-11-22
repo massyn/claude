@@ -4,11 +4,42 @@
 
 {% block content %}
 <div class="row justify-content-center mt-5">
-    <div class="col-sm-8 col-md-5 col-lg-4">
+    <div class="col-sm-10 col-md-7 col-lg-5">
         <div class="card shadow-sm">
-            <div class="card-body text-center p-4">
-                <h4 class="card-title mb-4">🔑 Sign in</h4>
-                <a href="{{ url_for('auth.google') }}" class="btn btn-outline-dark btn-lg w-100">
+            <div class="card-body p-4">
+                <h4 class="card-title text-center mb-4">🔑 Sign in</h4>
+
+                {% if test_user_active %}
+                <div class="alert alert-warning small" role="alert">
+                    <strong>TEST_USER active.</strong> Entering the test email signs you in without a code.
+                    Never enable this in production.
+                </div>
+                {% elif not mail_configured %}
+                <div class="alert alert-danger small" role="alert">
+                    Email sign-in isn't set up: the Mailgun settings are missing. Ask the administrator to configure them.
+                </div>
+                {% endif %}
+
+                <form method="post" action="{{ url_for('auth.login_submit') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <label class="form-label" for="email">Email address</label>
+                    <input type="email" class="form-control form-control-lg mb-3" id="email" name="email"
+                           required autofocus autocomplete="email" inputmode="email"
+                           {{ 'disabled' if not (mail_configured or test_user_active) }}>
+                    <button type="submit" class="btn btn-primary btn-lg w-100"
+                            {{ 'disabled' if not (mail_configured or test_user_active) }}>
+                        Email me a code
+                    </button>
+                </form>
+
+                <hr class="my-4">
+                <button type="button" class="btn btn-outline-dark btn-lg w-100" data-passkey="login"
+                        data-options-url="{{ url_for('auth.passkey_login_options') }}"
+                        data-verify-url="{{ url_for('auth.passkey_login') }}">
+                    🔐 Login with a passkey
+                </button>
+                {% if google_enabled %}
+                <a href="{{ url_for('auth.google') }}" class="btn btn-outline-dark btn-lg w-100 mt-3">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48" class="me-2">
                         <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
                         <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
@@ -18,16 +49,14 @@
                     </svg>
                     Login with Google
                 </a>
-                <button type="button" class="btn btn-outline-dark btn-lg w-100 mt-3" data-passkey="login"
-                        data-options-url="{{ url_for('auth.passkey_login_options') }}"
-                        data-verify-url="{{ url_for('auth.passkey_login') }}">
-                    🔐 Login with a passkey
-                </button>
+                {% endif %}
                 <p class="small text-danger mt-3 mb-0" data-passkey-status role="alert" hidden></p>
+                {% if passkey_signup_enabled %}
                 <p class="small text-muted mt-4 mb-0">
                     New here? <a href="{{ url_for('auth.passkey_signup') }}">Create an account with a passkey</a>,
-                    no Google account needed.
+                    no email needed.
                 </p>
+                {% endif %}
             </div>
         </div>
     </div>

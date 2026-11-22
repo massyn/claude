@@ -39,7 +39,8 @@ curl -s -X POST $URL/ -H "Authorization: Bearer $TOKEN" -H 'Content-Type: applic
   -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"whoami","arguments":{}}}'
 ```
 
-Locally, `TEST_USER=alice` in `.env_dev` signs in without Google, so `/tokens/` works offline.
+Locally, `TEST_USER=alice@example.com` in `.env_dev` signs that email in with no code (type it into the
+login form), so `/tokens/` works offline.
 Claude.ai cannot reach `localhost`; test OAuth end to end against the deployed site.
 
 ## Troubleshooting
@@ -48,7 +49,7 @@ Claude.ai cannot reach `localhost`; test OAuth end to end against the deployed s
 |---------|--------------|
 | Connector fails straight after entering the URL | `/.well-known/oauth-protected-resource` not reachable, or the 401 lacks `WWW-Authenticate` |
 | Discovery documents show `http://` or the wrong host | `FORCE_HTTPS` / `APP_HOSTNAME` not set in production `.env` |
-| Sign-in completes but lands on the home page, not consent | Google callback not redirecting to `mcp.oauth_authorize` when `session['mcp_oauth']` is set |
+| Sign-in completes but lands on the home page, not consent | `after_login_url()` not redirecting to `mcp.oauth_authorize` when `session['mcp_oauth']` is set |
 | `invalid_grant` at the token step | Code expired (10 min) or reused, `redirect_uri`/`client_id` mismatch, or PKCE verifier wrong |
 | 400 CSRF error on `/oauth/token` or `/` | MCP blueprint not passed to `csrf.exempt()` |
 | Tools connect but calls fail with 429 | `MCP_RATE_LIMIT` too low, or the endpoint is missing its own limit and hitting the app default |

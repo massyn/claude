@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Edit user{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <h1 class="h3 mb-3">Edit user</h1>
+
+        {% if lock_reason %}
+        <div class="alert alert-info">{{ lock_reason }}</div>
+        {% endif %}
+
+        <dl class="row">
+            <dt class="col-sm-4">Email</dt>
+            <dd class="col-sm-8">{{ user.email or '(no email)' }}</dd>
+            <dt class="col-sm-4">Created</dt>
+            <dd class="col-sm-8">{{ user.created_on|string|truncate(16, True, '') }}</dd>
+            <dt class="col-sm-4">Last login</dt>
+            <dd class="col-sm-8">
+                {% if user.last_login %}{{ user.last_login|string|truncate(16, True, '') }}
+                <span class="text-muted">via {{ user.last_method }}</span>
+                {% else %}Never{% endif %}
+            </dd>
+            <dt class="col-sm-4">Sign-in methods</dt>
+            <dd class="col-sm-8">
+                {% if user.email %}Email code{% endif %}
+                {% if user.passkeys %}· {{ user.passkeys }} passkey{{ 's' if user.passkeys != 1 }}{% endif %}
+                {% if user.google_id %}· Google{% endif %}
+            </dd>
+        </dl>
+
+        <form method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label class="form-label" for="name">Name</label>
+            <input type="text" class="form-control mb-3" id="name" name="name" required
+                   maxlength="{{ name_max_length }}" value="{{ user.name }}">
+            <label class="form-label" for="role">Role</label>
+            <select class="form-select mb-3" id="role" name="role" {{ 'disabled' if lock_reason }}>
+                {% for r in roles %}
+                <option value="{{ r }}" {{ 'selected' if r == user.role }}>{{ r }}</option>
+                {% endfor %}
+            </select>
+            <div class="form-check form-switch fs-5 mb-1">
+                <input class="form-check-input" type="checkbox" role="switch" id="enabled" name="enabled"
+                       {{ 'checked' if not user.disabled }} {{ 'disabled' if lock_reason }}>
+                <label class="form-check-label fw-semibold" for="enabled">Enabled</label>
+            </div>
+            <div class="form-text mb-4">Switch off to block every sign-in method and end their current session.</div>
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a class="btn btn-link" href="{{ url_for('admin.user_list') }}">Back</a>
+        </form>
+
+        {% if not lock_reason %}
+        <hr class="my-4">
+        <h2 class="h5 text-danger">Delete user</h2>
+        <p class="text-muted">Removes this user and their passkeys. It can't be undone.</p>
+        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#delete-user">
+            Delete this user
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+{% if not lock_reason %}
+<div class="modal fade" id="delete-user" tabindex="-1" aria-labelledby="delete-user-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="delete-user-title">Delete {{ user.email or user.name }}?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                They will be signed out and lose their passkeys. To keep the account but stop them
+                signing in, disable it instead.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="{{ url_for('admin.user_delete', user_id=user.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

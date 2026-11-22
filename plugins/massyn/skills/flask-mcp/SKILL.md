@@ -1,12 +1,13 @@
 ---
 name: flask-mcp
-description: Add a remote MCP (Model Context Protocol) server to a Flask app so Claude.ai, Claude Desktop and Claude Code can call the app's tools on behalf of a signed-in user - a stateless Streamable HTTP endpoint, a built-in OAuth 2.1 authorisation server (discovery, dynamic client registration, PKCE, refresh rotation) layered over the app's Google sign-in, personal access tokens for Claude Code, a JSON-RPC dispatcher, per-user server instructions and a tool registry. Builds on the flask skill and deploys unchanged with flask-deploy. Use whenever exposing a Flask app over MCP, adding or changing MCP tools, connecting Claude to an app as a custom connector, or debugging MCP auth/connection problems - even if the user doesn't say "MCP" explicitly (e.g. "let Claude read my app's data", "make this a Claude connector").
+description: Add a remote MCP (Model Context Protocol) server to a Flask app so Claude.ai, Claude Desktop and Claude Code can call the app's tools on behalf of a signed-in user - a stateless Streamable HTTP endpoint, a built-in OAuth 2.1 authorisation server (discovery, dynamic client registration, PKCE, refresh rotation) layered over whatever sign-in the app already has, personal access tokens for Claude Code, a JSON-RPC dispatcher, per-user server instructions and a tool registry. Builds on the flask skill and deploys unchanged with flask-deploy. Use whenever exposing a Flask app over MCP, adding or changing MCP tools, connecting Claude to an app as a custom connector, or debugging MCP auth/connection problems - even if the user doesn't say "MCP" explicitly (e.g. "let Claude read my app's data", "make this a Claude connector").
 ---
 
 # Flask MCP server
 
 A remote MCP server that lives inside a golden-template Flask app: same process, same database,
-same Google sign-in, no SDK. Apply the `flask` and `python` skills as well. Patterns come from
+same sign-in, no SDK. This skill has no sign-in of its own: how people authenticate is defined by the
+auth section of the `flask` skill (`references/security.md`). Apply the `flask` and `python` skills as well. Patterns come from
 Citadel (`~/github/citadel`), which runs this setup in production with Claude.ai, Claude Desktop and
 Claude Code as clients.
 
@@ -18,7 +19,7 @@ Client (Claude.ai / Claude Code)
   │ GET /.well-known/oauth-protected-resource → names this app as its own authorisation server
   │ GET /.well-known/oauth-authorization-server → endpoints, S256 PKCE, public clients
   │ POST /oauth/register                     → client_id (nothing stored)
-  │ GET /oauth/authorize ──► Google sign-in ──► consent page ──► redirect_uri?code=…&state=…
+  │ GET /oauth/authorize ──► the app's login page ──► consent page ──► redirect_uri?code=…&state=…
   │ POST /oauth/token (code + verifier)      → access + refresh token (mcp_tokens row)
   │ POST /  Bearer <token>  JSON-RPC         → initialize / tools/list / tools/call
   ▼
@@ -32,7 +33,7 @@ indistinguishable to the MCP endpoint.
 ## Adding MCP to an app
 
 1. Copy `assets/` into the project (it mirrors the project layout): `app/mcp/`, `app/pat.py`,
-   `templates/mcp/`, `templates/tokens/`, `templates/sql/mcp_*.sql`, `templates/sql/user_by_id.sql`,
+   `templates/mcp/`, `templates/tokens/`, `templates/sql/mcp_*.sql` (`user_by_id.sql` comes from the `flask` template),
    `static/js/tokens.js`, `tests/test_mcp.py`. Rename `app.` imports to the project package.
 2. Wire config, the app factory, `db.SCHEMA_FILES`, `after_login_url()` and `base.html` as in
    `references/wiring.md`.
@@ -63,8 +64,11 @@ indistinguishable to the MCP endpoint.
 - **Base URL from the hostname allow-list.** Discovery documents and the 401 header are built from
   `base_url()`, which uses `APP_HOSTNAMES` and `CF-Visitor`/`FORCE_HTTPS` - never the raw `Host`
   header, never `url_for(..., _external=True)`.
-- **The app is its own authorisation server.** Google is only the sign-in step inside
-  `/oauth/authorize`; MCP clients never see Google tokens.
+- **The app is its own authorisation server.** The app's login page (whatever methods the `flask` skill
+  gives it) is only the sign-in step inside `/oauth/authorize`; MCP clients never see its credentials.
+  Nothing here assumes a particular method: `/oauth/authorize` sends signed-out users to `auth.login`.
+- **Tokens need a user row.** The `ADMIN_USER` breakglass account has none, so it is refused (403) at
+  consent and on `/tokens/`; use `@account_required` for any route that attaches data to a user.
 - **Own rate limit on the MCP endpoint.** The app-wide default (`50 per hour`) would throttle a
   single conversation; the endpoint carries `@limiter.limit(MCP_RATE_LIMIT)` instead.
 

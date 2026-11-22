@@ -29,6 +29,9 @@ def create_app() -> Flask:
     oauth.init_app(app)
     app.register_blueprint(auth_bp)
 
+    from app.admin import bp as admin_bp
+    app.register_blueprint(admin_bp)
+
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
 
@@ -42,6 +45,10 @@ def create_app() -> Flask:
             version=app.config.get('VERSION', ''),
             gtag_id=app.config.get('GTAG_ID', ''),
         )
+
+    @app.errorhandler(403)
+    def forbidden(e):
+        return render_template('error.html', error_code=403, error_message='You do not have access to that page.'), 403
 
     @app.errorhandler(404)
     def not_found(e):

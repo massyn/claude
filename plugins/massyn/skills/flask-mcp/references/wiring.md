@@ -51,8 +51,8 @@ per `execute()`.
 
 When a client sends an unauthenticated user to `/oauth/authorize`, the request is parked in
 `session['mcp_oauth']` and the user is sent to sign in. After sign-in they must land back on the
-consent page, not the home page. Every sign-in route (Google, `TEST_USER`, passkeys) redirects to
-`after_login_url()`, so change that one function:
+consent page, not the home page. Every sign-in route (emailed code, `TEST_USER`, passkeys, Google if
+enabled) redirects to `after_login_url()`, so change that one function:
 
 ```python
 def after_login_url() -> str:
@@ -62,8 +62,8 @@ def after_login_url() -> str:
     return url_for('main.index')
 ```
 
-An app built from an older template without `after_login_url()` makes the same change at the end of
-both `callback()` and `test_callback()`.
+An app without `after_login_url()` is on an old auth template: bring its sign-in up to the `flask` skill's
+auth section (`references/security.md`) first, rather than patching each sign-in route.
 
 ## `templates/base.html`
 

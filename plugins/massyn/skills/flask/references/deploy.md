@@ -59,14 +59,19 @@ secret values). Set `FLASK_DEBUG=True`. Do not set `FORCE_HTTPS` locally.
 |----------|---------|
 | `SECRET_KEY` | Flask session signing - must be replaced in production |
 | `DATABASE_URL` | Required, no default. `sqlite:////data/<slug>/app.db` or a Postgres URL |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google OAuth credentials |
+| `MAILGUN_API_KEY`, `MAILGUN_DOMAIN`, `MAILGUN_FROM` | Email sign-in codes. Unset, the login page reports that email sign-in is not configured. `MAILGUN_BASE_URL` for EU-region accounts |
+| `ADMIN_USER` | Breakglass admin email: always an admin, may sign in with no users row |
+| `ALLOW_SIGNUP` | `true` lets any verified email create an account; default `false` (users must be added by an admin) |
+| `PASSKEY_SIGNUP` | `true` lets visitors create an account with a passkey alone; default `false`. Only for apps that demand it |
+| `OTP_TTL_SECONDS`, `OTP_MAX_ATTEMPTS` | How long an emailed code lasts (default 600) and how many wrong guesses void it (default 5) |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Optional Google sign-in; the button appears only when the ID is set |
 | `APP_HOSTNAME` | Comma-separated allow-list of valid hostnames (see `security.md`) |
 | `FORCE_HTTPS` | `true` for non-Cloudflare HTTPS deployments; omit behind Cloudflare and in local dev |
 | `VERSION` | Footer version label; generated at deploy time, not stored as a secret |
 | `GTAG_ID` | Google tag ID; omit to render no analytics tag |
 | `FLASK_PORT` | Dev only - dev server port (default 5000). Omit in production; flask-deploy assigns the port |
 | `FLASK_DEBUG` | Dev only - enables debug and disables `SESSION_COOKIE_SECURE` |
-| `TEST_USER` | Dev only - bypasses Google OAuth (see `security.md`) |
+| `TEST_USER` | Dev only - an email that signs in with no code (see `security.md`). Never set it in production |
 
 ## Server directory layout
 
@@ -144,8 +149,13 @@ jobs:
           echo "# created from actions" > .env
           echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
           echo "DATABASE_URL=sqlite:////data/${{ env.SLUG }}/app.db" >> .env
-          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
-          echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+          echo "MAILGUN_API_KEY=${{ secrets.MAILGUN_API_KEY }}" >> .env
+          echo "MAILGUN_DOMAIN=${{ secrets.MAILGUN_DOMAIN }}" >> .env
+          echo "MAILGUN_FROM=${{ secrets.MAILGUN_FROM }}" >> .env
+          echo "ADMIN_USER=${{ secrets.ADMIN_USER }}" >> .env
+          # Only if the app offers Google sign-in:
+          # echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+          # echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
           echo "APP_HOSTNAME=$(echo '${{ env.HOSTS }}' | tr ' ' ',')" >> .env
           echo "VERSION=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> .env
 
@@ -179,7 +189,7 @@ jobs:
 3. Create a Cloudflare Origin Certificate (domain + wildcard) and install it on the server as
    `/data/<slug>/public.pem` and `/data/<slug>/private.pem` (`chmod 600` the key). Set Cloudflare SSL
    mode to **Full (strict)**.
-4. If the app uses Google login, create an OAuth client with redirect URI
-   `https://<domain>/auth/callback`.
+4. In Mailgun, verify the sending domain (DNS records) and create an API key. If the app also offers
+   Google login, create an OAuth client with redirect URI `https://<domain>/auth/callback`.
 5. Load the app's secrets into GitHub Actions secrets and add the workflow above.
 6. Push to `main` and watch the Actions log.
